@@ -1,0 +1,33 @@
+<template>
+    <div class="all-wrapper">
+        <div class="all" v-for="(item,i) in videoList" :key="i" v-if="item.type == indexvalue">
+            <video id="live-video" :src="item.video_url" :poster="item.cover_img" :muted="muteStatus" :autoplay="playStatus" controls>
+            </video>
+            <div class="video-introduct">
+                <p class="title">{{item.video_name}}</p>
+                <p class="time">开始时间：{{item.create_time}}</p>
+            </div>
+        </div>
+    </div>
+</template>
+<script>
+export default {
+    data() {
+        return {
+            videoSrc:'',
+            videoImg:'',
+            playStatus:'',
+            muteStatus:'',
+            isMute:true,
+            isPlay:false,
+        }
+    },
+    props:['videoList', 'indexvalue'],
+    methods:{
+       
+    },
+    mounted() {
+    }
+}
+</script>
+

@@ -1,0 +1,310 @@
+<template>
+    <div class="live">
+        <Title :showtitle='liveTitle'></Title>
+        <div class="top-live">
+            <span class="logo"></span>
+            <div class="home-personal">
+                <span class="personal-center" @click="$router.push({path:'/personal'})">个人中心</span>
+                <span class="home goto" @click="$router.push({path:'/'})">返回首页</span>
+            </div>
+        </div>
+        <div class="play-live">
+            <video id="myvideo" :src="videoSrc" :poster="videoImg" :muted="muteStatus" :autoplay="playStatus" controls>
+                your browser does not support the video tag
+            </video>
+            <span class="ico ico-sound" :class="{ active: isMute }" v-on:click="closeSoundClick()"></span>
+            <span class="ico ico-skip"></span>
+            <span class="ico ico-video" :class="{ hide: isPlay }" v-on:click="playClick()"></span>
+        </div>
+        <div class="livehomestate" v-if="appointFlag">
+            <div class="start-time">
+                <div class="start-title">离直播开始还有</div>
+                <div class="time">
+                    <span class="countdown-box" :id="'cdd11111'"></span> <sub>天</sub> <span class="countdown-box" :id="'cdh11111'"></span> <sub>时</sub> <span class="countdown-box" :id="'cdm11111'"></span> <sub>分</sub> <span class="countdown-box" :id="'cds11111'"></span><sub>秒</sub>
+                    {{limiteTime(1535497276000, '11111')}} 
+                </div>
+            </div>
+            <div class="details">
+                <div class="title">
+                    <div class="live-title">校园分享会·媒体见面会，7月11日我们不见不散</div>
+                    <div class="start-time-title">开始时间：2017-12-05 14:57</div>
+                    <div class="money">
+                        <img src="./images/icon_fufei.png">
+                        <span>￥1</span>
+                    </div>
+                </div>
+                <div class="introduction">
+                    <h5>简介</h5>
+                    <p>深圳市梦网科技发展有限公司创建于2001年9月，是一家专业从事移动数据技术综合应用的高新技术企业，是中国信息产业部批准的全网ICP，致力于为广大客户提供基于移动数据技术的行业应用解决方案。</p>
+                </div>
+            </div>
+            <div class="bottom-invitation-pay">
+            <span class="invitation">邀请</span>
+            <span class="pay" @click="pay">付费预约</span>
+            </div>
+            <Login v-if="flag"></Login>
+            <div class="mask" v-if="flag"></div>
+        </div>
+        <!-- 直播间 -->
+        <div class="livehome">
+            <div class="chat-detail-se" v-for="(item,i) in tabContents" :key="i">
+            <div :class="currentTabsIndex == i ? 'tabs-item active' : 'tabs-item'" @click="selectTabs(i)">
+                {{item}}
+            </div>
+            </div>
+        </div>
+        <Chat v-show="currentTabsIndex == 0"></Chat>
+        <Details v-show="currentTabsIndex == 1"></Details>
+        <List v-show="currentTabsIndex == 2"></List>
+    </div>
+</template>
+<script>
+import Countdown from '@/components/CountDown'
+import Login from '@/components/Login'
+import Title from '@/components/Title'
+import Chat from './live/Chat'
+import Details from './live/Details'
+import List from './live/List'
+import { doubleCountHandle } from '@/utils/utils.js'
+import eventVue from '@/components/eventVue.js'
+export default {
+    data(){
+        return {
+            videoSrc:'http://babylife.qiniudn.com/FtRVyPQHHocjVYjeJSrcwDkApTLQ',
+            videoImg:'https://image.baidu.com/search/detail?z=0&word=%E6%91%84%E5%BD%B1%E5%B8%88%E8%8A%A6%E7%82%B3%E8%87%A3&hs=0&pn=0&spn=0&di=0&pi=55758634350&tn=baiduimagedetail&is=0%2C0&ie=utf-8&oe=utf-8&cs=1086318966%2C3884602950&os=&simid=&adpicid=0&lpn=0&fm=&sme=&cg=&bdtype=-1&oriquery=&objurl=http%3A%2F%2Fg.hiphotos.baidu.com%2Fimage%2Fpic%2Fitem%2F5bafa40f4bfbfbedc5597ab474f0f736aec31ffc.jpg&fromurl=&gsm=0&catename=pcindexhot&islist=&querylist=',
+            playStatus:'',
+            muteStatus:'',
+            isMute:true,
+            isPlay:false,
+            time:0,
+            flag:false,
+            appointFlag:true,
+            tabContents:['聊天','详情','榜单'],
+            currentTabsIndex:0,
+            liveTitle:'中国正在上演'
+        }
+    },
+    components:{ Countdown, Login, Title, Chat, Details, List},
+    methods:{
+        playClick(){
+            // this.isPlay = !this.isPlay;
+            // this.playStatus= 'autoplay';
+            this._dom = document.getElementById('myvideo');
+            this.isPlay = !this.isPlay;
+            this._dom.play();
+        },
+        closeSoundClick(){
+            this.isMute = !this.isMute;
+            if(this.isMute){
+                this.muteStatus = '';
+            }else{
+                this.muteStatus = 'muted';
+            }
+        },
+        limiteTime(time,id) {
+            const nowTime = new Date().getTime()
+            let diffTime = time - nowTime
+            let timer = null
+            timer = setInterval(() => {
+            diffTime -= 1000
+            if(diffTime > 0) {
+                var d = Math.floor(diffTime/3600000/24), h = Math.floor(diffTime/3600000), m = Math.floor((diffTime - (h*3600000))/60000), 
+                s = Math.floor((diffTime - (h*3600000) - (m*60000))/1000)
+                //doubleCountHandle
+                if(h > 24 || h == 24) {
+                    h = h%24;
+                }
+                if(document.getElementById(`cdd${id}`)) {
+                document.getElementById(`cdd${id}`).innerText = doubleCountHandle(d)
+                }
+                if(document.getElementById(`cdh${id}`)) {
+                document.getElementById(`cdh${id}`).innerText = doubleCountHandle(h)
+                }
+                if(document.getElementById(`cdm${id}`)) {
+                document.getElementById(`cdm${id}`).innerText = doubleCountHandle(m)
+                }
+                if(document.getElementById(`cds${id}`)) {
+                document.getElementById(`cds${id}`).innerText = doubleCountHandle(s)
+                }
+            } else {
+                clearInterval(timer)
+                timer = null
+                return false
+            }
+            }, 1000)
+        },
+        pay(){
+            this.flag = true;
+        },
+        selectTabs(index){
+            this.currentTabsIndex = index;
+        },
+    },
+    mounted(){
+        this.time = (new Date()).getTime()
+        eventVue.$on('cancel', val => {
+            this.flag = val
+        })
+    }
+}
+</script>
+<style lang="scss">
+.live {
+    .top-live {
+        display: flex;
+        justify-content: space-between;
+        height: 44px;
+        align-items: center;
+        .logo {
+            display: inline-block;
+            width: 85px;
+            height: 19px;
+            background: url('./images/logo.png') no-repeat;
+            background-size: 85px 19px;
+            margin-left: 15px;
+        }
+        .home-personal {
+            .personal-center,.home {
+                display: inline-block;
+                height: 27px;
+                width: 70px;
+                line-height: 27px;
+                color: #4A4A4A;
+                border: 1px solid #979797;
+                text-align: center;
+                font-size: 12px;
+                border-radius: 16px;
+                margin-right: 10px;
+                &.goto {
+                    color: #FF6633;
+                    border-color: #FF6633;
+                }
+            }
+        }
+    }
+    #myvideo {
+        object-fit:fill;
+        width: 100%;
+        height: 211px;
+        display: block;
+    }
+    .livehomestate {
+        // 预约
+        .start-time {
+            width: 100%;
+            height: 50px;
+            background: #2D2E35;
+            display: flex;
+            justify-content: space-between;
+            align-items:center;
+            .start-title {
+                color: #9B9B9B;
+                padding-left: 15px;
+                font-size: 14px;
+            }
+            .time {
+                padding-right: 15px;
+                color: #fff;
+                .countdown-box {
+                    color: #fff;
+                    font-size: 30px;
+                }
+                sub {
+                    font-size: 11px;
+                    color: #9B9B9B;
+                    position: relative;
+                    top: -4px;
+                }
+            }
+        }
+        .details {
+            padding-bottom: 48px;
+            .title {
+                border-bottom: 1px solid #f2f2f2;
+                .live-title {
+                    font-size: 17px;
+                    padding: 6px 56px 6px 15px;
+                    font-family:PingFangSC-Medium;
+                    font-weight: bold;
+                    color: #333333;
+                    line-height: 25px;
+                }
+                .start-time-title {
+                    font-size: 13px;
+                    color: #999;
+                    padding: 6px 0 6px 15px;
+                }
+                .money {
+                    padding: 0 0 15px 15px;
+                    span {
+                        color: #FF6634;
+                    }
+                }
+            }
+            .introduction {
+                h5 {
+                    font-size: 16px;
+                    color: #333;
+                    padding: 15px;
+                    line-height: 23px;
+                }
+                p {
+                    font-size: 14px;
+                    color: #333;
+                    line-height: 25px;
+                    padding: 0 15px;
+                }
+            }
+        }
+            .bottom-invitation-pay {
+                width: 100%;
+                height: 4.8rem;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                display: flex;
+                color: #fff;
+                text-align: center;
+                .invitation {
+                    flex: 1;
+                    background: #576AF4;
+                    line-height: 4.8rem;
+                }
+                .pay {
+                    flex: 2;
+                    background: #FF6633;
+                    line-height: 4.8rem;
+                }
+            }
+        .mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,.5);
+            z-index: 1;
+        }
+    }
+    // 回放及直播
+    .livehome {
+        display: flex;
+        justify-content: center;
+        align-items:center;
+        .chat-detail-se {
+            .tabs-item {
+                padding: 1.2rem 2.8rem;
+                font-size: 1.3rem;
+                color:#111;
+                display: flex;
+                align-items: center;
+                &.active {
+                    color: #FF6633;
+                }
+                }
+        }
+    }
+}
+</style>
+
+

@@ -1,0 +1,17 @@
+import Vue from 'vue'
+import App from './App.vue'
+import router from './router'
+import axios from 'axios'
+import VueAwesomeSwiper from 'vue-awesome-swiper'
+import 'swiper/dist/css/swiper.css'
+
+Vue.use(VueAwesomeSwiper)
+
+Vue.prototype.$http= axios
+Object.defineProperty(Vue.prototype, '$axios', { value: axios })
+
+new Vue({
+  el: '#app',
+  router,
+  render: h => h(App)
+})

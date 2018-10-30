@@ -1,0 +1,158 @@
+<template>
+<div class="hot">
+  <div v-if="play.length !== 0">
+    <div v-for="(item,i) in play" :key="i">
+        <div class="tabs-contents">
+          <div class="play-wrapper">
+            <div class="play-img" @click="$router.push({path:'/live'})">
+              <img src="http://img06.tooopen.com/images/20160818/tooopen_sy_175866434296.jpg">
+            </div>
+            <div class="play-details">
+              <div class="play-title">
+                <span>小哈·越学约有戏</span>
+                <span class="watch">观看</span>
+              </div>
+              <div class="play-time">开始时间：2016/06/28</div>           
+            </div>
+            <!-- 左上脚直播和观看人数开始 -->
+            <div class="play-seenumber">
+              <div class="play-wordwrapper">
+                <!-- <span class="live-word">{{item.playsTitle}}</span> -->
+                <span class="live-word" v-if="item.liveType == 1">直播</span>
+                <span class="live-word" v-if="item.liveType == 2">预告</span>
+                <span class="live-word" v-if="item.liveType == 3">回放</span>
+                <span class="live-word" v-if="item.liveType == 4">结束</span>
+                <img src="./../images/icon_camera.png" v-if="item.liveType == 1">
+                <img src="./../images/icon_clock.png" v-else-if="item.liveType == 2">
+                <img src="./../images/icon_back.png" v-else-if="item.liveType == 3">
+                <img src="./../images/icon_clock.png" v-else-if="item.liveType == 4">
+              </div>
+              <span class="see-livenumber">1978</span>
+            </div>
+            <!-- 左上脚直播和观看人数结束 -->
+            <div class="pay-money">付费</div>
+          </div>
+        </div>
+    </div>
+  </div>
+    <div v-else class="nothingdata">
+        <span>暂无数据哦~</span>
+    </div>
+</div>
+</template>
+<script>
+export default {
+    data() {
+        return {
+
+        }
+    },
+    props:['play'],
+    mounted() {
+        console.log(this.plays)
+    }
+}
+</script>
+<style lang='scss'>
+.nothingdata {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 12.4rem;
+  span {
+    font-size: 1.4rem;
+    color: #9B9B9B;
+  }
+}
+.tabs-contents {
+  width: 92%;
+  margin: 0 auto;
+  position: relative;
+  .play-wrapper {
+    margin-bottom:1rem;
+    box-shadow: 0 0.3rem 1rem #EDEEF1;
+    .play-img {
+      img {
+        display: inline-block;
+        width: 100%;
+        height: 19.4rem;
+      }
+    }
+    .play-details {
+      .play-title {
+        font-size: 1.6rem;
+        line-height: 2.3rem;
+        color: #333;
+        padding: 0.6rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        .watch {
+          display: inline-block;
+          border-radius:1.6rem;
+          width: 5.5rem;
+          height: 2.5rem;
+          line-height: 2.5rem;
+          text-align: center;
+          color: #fff;
+          font-size: 1.3rem;
+          background: linear-gradient(-125.3deg,rgba(255,139,26,1),rgba(255,102,51,1));
+box-shadow:0px 4px 8px 0px rgba(255,102,52,0.5);
+        }
+      }
+      .play-time {
+        font-size: 1.3rem;
+        line-height: 1.9rem;
+        color: #9B9B9B;
+        padding: 0.6rem 1rem;
+      }
+    }
+  }
+  .play-seenumber {
+    width: 80%;
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    height: 1.9rem;
+    display: flex;
+    .play-wordwrapper {
+      display: flex;
+      background: #FF1818;
+      height: 1.9rem;
+      font-size: 1.2rem;
+      border-radius:1rem;
+      width: 5.4rem;
+      text-align: center;
+      color: #fff;
+      position: relative;
+      z-index: 2;
+      justify-content: space-around;
+      align-items: center;
+      .live-word {
+        position: relative;
+        left: 0.3rem;
+      }
+    }
+    img {
+      width: 1.6rem;
+      height: 1.6rem;
+      position: relative;
+      right: 1px;
+    }
+    .see-livenumber {
+      font-size: 1.2rem;
+      height: 1.9rem;
+      line-height: 1.9rem;
+      color: #fff;
+      border-radius: 0 1rem 1rem 0;
+      background: #000;
+      width: 5rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      left: -0.7rem;
+    }
+  }
+}
+</style>
+

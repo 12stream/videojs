@@ -1,0 +1,228 @@
+<template>
+  <div class="main">
+    <div class="return-title" v-if="!weixinFlag">
+        <span>中国网正在上演</span>
+    </div>
+    <div class="search">
+      <span class="logo"></span>
+      <span class="searchinput" @click="$router.push({path:'/search'})">请输入要搜索的内容
+        <img src="./images/search.png">
+      </span>
+    </div>
+    <div class="banner">
+      <swiper :options="swiperOption"  ref="mySwiper">  
+          <swiper-slide v-for="(item,i) in carousel" :key="i"> 
+              <img :src="item.imageUrl" class="index_img">
+          </swiper-slide>  
+          <!-- 这是轮播的小圆点 -->  
+          <div class="swiper-pagination" slot="pagination"></div>  
+      </swiper>  
+    </div>
+    <div class="hot-new-wrapper">
+      <!-- 热门，最新tab标题 -->
+      <div class="hotnew">
+        <div class="hot-new" v-for="(item,i) in tabContents" :key="i">
+          <div :class="currentTabsIndex == i ? 'tabs-item active' : 'tabs-item'" @click="selectTabs(i)">
+            {{item}}
+          </div>
+        </div>
+      </div>
+      <!-- 热门内容 -->
+      <Hot :tabNumber="currentTabsIndex" :totalNumber='total' v-show="currentTabsIndex == 0"></Hot>
+      <!-- 最新内容 -->
+      <New :tabNumber="currentTabsIndex" :totalNumber='total' v-show="currentTabsIndex == 1"></New>
+    </div>
+  </div>
+</template>
+
+<script>
+import { swiper, swiperSlide } from 'vue-awesome-swiper'
+import eventVue from '@/components/eventVue';
+import {is_weixn} from '@/utils/utils'
+import Hot from './home/Hot'
+import New from './home/New'
+export default {
+  name: 'index',
+  data () {
+    return {
+      carousel:[],
+        swiperOption: {  
+            pagination: '.swiper-pagination',  
+            centeredSlides: true,  
+            paginationClickable: true,
+            onSlideChangeEnd: swiper => {  
+                //这个位置放swiper的回调方法  
+                this.page = swiper.realIndex+1;  
+                this.index = swiper.realIndex;  
+            },
+            autoplay: 3000,
+            speed:500,
+            loop:true
+        }, 
+        tabContents:['热门','最新'],
+        currentTabsIndex:0,
+        playsTitle:'',
+        carsouelList:[],
+        weixinFlag:false,
+        total:0
+    }
+  },
+  components:{Hot, New},
+  methods:{
+    selectTabs(index){
+      this.currentTabsIndex = index;
+    },
+    // 轮播
+    getShuffling(){
+      var params = {
+        bizCode:'9024',
+        appID:'1',
+        pageNo:1,
+        pageSize:8
+      }
+      this.$ajax.getcarousel(params).then(res =>{
+        console.log(res)
+        this.carousel = res.params.list
+      })
+    },
+    // 热门
+    getLiveData(){
+      if(is_weixn()) {
+        this.weixinFlag = true
+      }
+      var params = {
+        page_index:1,
+        page_size:5
+      }
+      this.$ajax.hotList(params).then(res => {
+        // console.log(res)
+        this.total = res.data.page.total
+        if(res.data.data_list) {
+          eventVue.$emit('playsHot',res.data.data_list)
+          var liveResult = this.plays;
+          for(let val of liveResult) {
+            if(val.liveType == 1) {
+              val.playsTitle = '直播'
+            }else if(val.liveType == 2) {
+              val.playsTitle = '预告'
+            }else if(val.liveType == 3) {
+              val.playsTitle = '回放'
+            }else if(val.liveType == 4) {
+              val.playsTitle = '结束'
+            }
+          }
+        }
+      })
+    },
+    // 最新
+    getNewData() {
+      this.$ajax.newList().then(res => {
+        eventVue.$emit('playsNew',res.data.data_list)
+      })
+    }
+  },
+  computed:{
+    swiper() {  
+      return this.$refs.mySwiper.swiper;  
+    }  
+  },
+  mounted(){
+    this.getShuffling()
+    this.getNewData()
+    this.getLiveData()
+  }
+}
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style lang="scss">
+  /* pages/hall/hall.wxss */
+.main {
+  padding-bottom: 4.9rem;
+  .return-title {
+    display: flex;
+    justify-content: center;
+    height: 44px;
+    background: #EDEEF1;
+    span {
+        font-size: 17px;
+        color: #111;
+        line-height: 44px;
+    }
+  }
+}
+.search {
+  width: 100%;
+  background: #EDEEF1;
+  padding: 1rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .logo {
+    width: 8.5rem;
+    height: 1.9rem;
+    background: url('images/logo.png') no-repeat;
+    background-size: 8.5rem 1.9rem;
+    margin-left: 1.5rem;
+  }
+  .searchinput {
+    height: 3.2rem;
+    background: #fff;
+    border-radius: 1.7rem;
+    flex: 8;
+    font-size: 1.3rem;
+    margin: 0 1.5rem;
+    padding-left: 1.5rem;
+    line-height: 3.2rem;
+    color: #9B9B9B;
+    position: relative;
+    img {
+      height: 2rem;
+      width: 2rem;
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      margin-top: -1rem;
+    }
+  }
+}
+.banner {
+  width: 100%;
+  height: 12rem;
+  img {
+    width: 100%;
+    height: 12rem;
+    overflow: hidden;
+  }
+}
+.hotnew {
+  display: flex;
+  justify-content: center;
+  align-items:center;
+  .hot-new {
+    .tabs-item {
+      padding: 1.2rem 2.8rem;
+      font-size: 1.3rem;
+      color:#111;
+      display: flex;
+      align-items: center;
+      &.active {
+        font-size: 2.1rem; 
+        color: #FF6633;
+      }
+    }
+  }
+}
+.pay-money {
+  width: 5rem;
+  height: 1.9rem;
+  border-radius:5rem 0rem 0rem 5rem;
+  position: absolute;
+  top: 1rem;
+  right: 0;
+  background: #FF6634;
+  color: #fff;
+  text-align: center;
+  line-height: 1.9rem;
+}
+</style>

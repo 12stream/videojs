@@ -1,0 +1,40 @@
+<template>
+  <time>{{str}}</time>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+    }
+  },
+  props: {
+    time: Number,
+    fmt: {
+      type: String,
+      default: 'dd:hh:mm:ss'
+    }
+  },
+  computed: {
+    str() {
+      var date = new Date(this.time);
+      var Y = date.getFullYear() + '/';
+      var M = (date.getMonth()+1 < 10 ? + (date.getMonth()+1) : date.getMonth()+1) + '/';
+      var D = date.getDate() + ' ';
+      var H = date.getHours() < 10 ? '0' + date.getHours() + ':' : date.getHours() + ':'
+      var Mi = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
+      return Y  + M + D  + H + Mi
+    }
+  },
+  methods: {
+    
+  },
+  mounted() {
+    
+  },
+}
+</script>
+
+<style>
+
+</style>

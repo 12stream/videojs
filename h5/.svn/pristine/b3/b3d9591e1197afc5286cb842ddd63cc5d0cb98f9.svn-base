@@ -1,0 +1,161 @@
+<template>
+    <div class="history">
+        <Title :showtitle="title"></Title>
+        <div class="search">
+            <input type="text" placeholder="搜索直播标题" v-model="liveTitle" @keyup.enter="search"/>
+            <span class="cancel">取消</span>
+        </div>
+        <div class="historylist" v-if="historyList.length !== 0">
+             <div class="history-title">
+                <span>搜索记录</span>
+                <img src="./images/fill.png" @click="clearHistory">
+            </div>
+            <div class="wordList">
+                <span v-for="item in historyList" :key="item" @click="search(item)">{{item}}</span>
+            </div>
+        </div>
+        <div class="nohistorylist" v-else>
+            <img src="./images/img-weix.png">
+            <span>无搜索结果</span>
+        </div>
+    </div>
+</template>
+<script>
+import Title from '@/components/Title'
+export default {
+    data() {
+        return {
+            liveTitle:'',
+            historyList:[],
+            title:'中国正在上演',
+            show:false,
+            mes:'删除咯'
+        }
+    },
+    components:{Title},
+    methods:{
+        search(){
+            console.log(this.liveTitle)
+            if(this.liveTitle !== ''){
+                if(localStorage.getItem('liveTitle')) {
+                    var liveListTime = JSON.parse(localStorage.getItem('liveTitle'));
+                    liveListTime.push(this.liveTitle)
+                    localStorage.setItem('liveTitle',JSON.stringify(liveListTime))
+                }else {
+                    var list = [];
+                    list.push(this.liveTitle)
+                    console.log(list)
+                    localStorage.setItem('liveTitle',JSON.stringify(list))
+                }
+                
+            }
+        },
+        clearHistory() {
+           this.$msgbox({
+                title:'温馨提示',
+                cancel:'取消',
+                content:'你确定删除搜索记录吗？',
+                confirm:'确定按钮',
+                className:'pop-custom'
+            }).then(()=>{
+                console.log("我点击了确定按钮")
+                localStorage.removeItem('liveTitle')
+                this.historyList = []
+            }).catch((err)=>{
+                console.log("error");
+            })
+        }
+    },
+    mounted(){
+        if(localStorage.getItem('liveTitle')) {
+            this.historyList = JSON.parse(localStorage.getItem('liveTitle'))
+        }
+    }
+}
+</script>
+<style lang="scss">
+.history {
+    .search {
+        width: 100%;
+        background: #EDEEF1;
+        padding: 1rem 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        input {
+            height: 3.2rem;
+            border-radius: 1.7rem;
+            flex: 8;
+            font-size: 1.3rem;
+            margin: 0 1.5rem;
+            padding-left: 3.5rem;
+            line-height: 3.2rem;
+            color: #9B9B9B;
+            background:url('./images/souicon.png') no-repeat #fff 1.5rem;
+        }
+        .cancel {
+            height: 1.9rem;
+            width: 2.7rem;
+            line-height: 1.9rem;
+            font-size: 1.3rem;
+            margin-right: 1.5rem;
+            color: #111111;
+        }
+        input::-webkit-input-placeholder{
+            color:#D9D9D9;
+        }
+        input::-moz-placeholder{   /* Mozilla Firefox 19+ */
+            color:#D9D9D9;
+        }
+        input:-moz-placeholder{    /* Mozilla Firefox 4 to 18 */
+            color:#D9D9D9;
+        }
+        input:-ms-input-placeholder{  /* Internet Explorer 10-11 */ 
+            color:#D9D9D9;
+        }
+    }
+    .historylist {
+        .history-title {
+            height: 5.7rem;
+            line-height: 5.7rem;
+            display: flex;
+            justify-content: space-between;
+            align-items:center;
+            span {
+                color: #111;
+                font-size: 1.3rem;
+                padding-left: 1.5rem;
+                font-weight: bold;
+            }
+            img {
+                padding-right: 1.5rem;
+            }
+        }
+        .wordList {
+            span {
+                display: inline-block;
+                height: 3rem;
+                text-align: center;
+                line-height: 3rem;
+                font-size: 1.3rem;
+                background: #F8F8F8;;
+                border-radius: 1.5rem;
+                padding: 0 1.2rem;
+                color: #333;
+                margin-left: 1rem;
+            }
+        }
+    }
+    .nohistorylist {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding-top: 13.8rem;
+        span {
+            margin-top: 2rem;
+            color: #9B9B9B;
+        }
+    }
+}
+</style>

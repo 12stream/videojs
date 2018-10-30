@@ -1,0 +1,209 @@
+<template>
+    <div class="invite-card" id="invite-canvas" v-if="canvasState">
+        <Title :showtitle='liveTitle' v-if="!weixinFlag"></Title>
+        <div :class="weixinFlag ? 'card no' : 'card'">
+            <div class="user">
+                <img src="./../images/rockets.png">
+                <div class="user-name">
+                    <span class="name">{{inviteInfo.user_title}}</span>
+                    <span>邀您一起看直播</span>
+                </div>
+            </div>
+            <div class="erweima">
+                <div class="live-title">
+                    <img :src="inviteInfo.head_url" class="live-img">
+                     <h2>{{inviteInfo.live_name}}</h2>
+                     <div class="time">开播时间：<Countdown :time="inviteInfo.begin_time" :timeflag="false"></Countdown></div>
+                </div>
+                <div class="erweima-icon">
+                    <div class="xtitle">正在上演 推荐...</div>
+                    <div class="xcx-icon"><img :src="xcxCode"></div>
+                    <div class="xcx-title">长按识别小程序二维码</div>
+                </div>
+            </div>
+            <div class="title">长按图片保存邀请卡</div>
+        </div>
+    </div>
+</template>
+<script>
+import Title from '@/components/Title'
+import { is_weixn, is_QQ } from '@/utils/utils.js'
+import Countdown from '@/components/CountDown'
+export default {
+    data() {
+        return {
+            weixinFlag:false,
+            liveTitle:'中国网正在上演',
+            canvasState:true,
+            inviteInfo:{},
+            xcxCode:'',
+            Flag:false
+        }
+    },
+    components:{Title, Countdown},
+    methods:{
+       getMin() {
+           this.$ajax.getMinCode({
+               scene:this.$route.params.livId,
+               path:'pages/liveKing/mwLive'
+           }).then(res => {
+               console.log(res)
+               if(res.code == 200) {
+                   this.xcxCode = res.data
+                   this.Flag = true
+                   this.getUserInfo()
+               }
+           })
+       },
+       getUserInfo() {
+           this.$ajax.liveDetails({id:this.$route.params.livId}).then(res =>{
+               this.inviteInfo = res.data
+               if(res.code == 200) {
+                   if(this.Flag && this.inviteInfo) {
+                       html2canvas(document.querySelector("#invite-canvas"),{
+                        //    useCORS:true,
+                        //    width:window.screen.availWidth,
+                        //    height:window.screen.availHeight,
+                        //    windowWidth:document.body.scrollWidth,
+                        //    windowHeight:document.body.scrollHeight,
+                        //    x:0,
+                        //    y:window.pageYOffset
+                       }).then(canvas => {
+                            document.body.appendChild(canvas)
+                            this.canvasState = false
+                        });
+                   }
+               }
+           })
+       }
+    },
+    mounted() {
+        if(is_weixn() || is_QQ()) {
+            this.weixinFlag = true
+        }
+         this.getMin();
+    }
+}
+</script>
+<style lang="scss">
+body {
+    height: 100%;
+}
+    .invite-card {
+        position: absolute;
+        width: 100%;
+        top: 0;
+        bottom: 0;
+        .card {
+            position: absolute;
+            width: 100%;
+            top: 4.4rem;
+            bottom: 0;
+            padding: 0 2.5rem;
+            background: url('./../images/bg_Big.png') no-repeat;
+            background-size: cover;
+            &.no {
+                top: 0;
+            }
+            .user {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 40px;
+                margin-bottom: 0.6rem;
+                align-items: center;
+                line-height: 2.2rem;
+                img {
+                    width: 4rem;
+                    height: 4rem;
+                }
+                .user-name {
+                    display: flex;
+                    flex-direction: column;
+                    color: #fff;
+                    justify-content: center;
+                    span {
+                        font-size: 1.3rem;
+                        text-align: center;
+                        &.name {
+                            font-size: 1.6rem;
+                            font-weight: 600;
+                        }
+                    }
+                }
+            }
+            .erweima{
+                width: 100%;
+                min-height: 456px;
+                background: url('./../images/CombinedShape.png') no-repeat;
+                background-size: 100% 100%;
+                display: flex;
+                // justify-content: center;
+                flex-direction: column;
+                align-items: center;
+                .live-title {
+                    width: 275px;
+                    max-height: 262px;
+                    border-bottom: 1px dotted #979797;
+                    .live-img {
+                        width: 275px;
+                        height: 155px;
+                        margin-top: 15px;
+                    }
+                    h2 {
+                        font-size: 2.1rem;
+                        color: #111;
+                        height: 30px;
+                        line-height: 30px;
+                        text-align: center;
+                        font-weight: 500;
+                        margin-top: 15px;
+                    }
+                    .time {
+                        text-align: center;
+                        font-size: 13px;
+                        height: 18.5px;
+                        line-height: 18.5px;
+                        color:rgba(17,17,17,0.8);
+                        margin-top: 9px;
+                        margin-bottom: 20px;
+                    }
+                }
+                .erweima-icon {
+                    display: flex;
+                    justify-content: center;
+                    flex-direction: column;
+                    align-items: center;
+                    .xtitle {
+                        font-size: 13px;
+                        color: #4A4A4A;
+                        line-height: 19px;
+                        margin: 12px 0;
+                    }
+                    .xcx-icon {
+                        width: 112px;
+                        height: 114px;
+                        img {
+                           width: 112px;
+                           height: 114px; 
+                        }
+                    }
+                    .xcx-title {
+                        font-size: 13px;
+                        color: #9B9B9B;
+                        line-height: 19px;
+                        margin: 9px 0;
+                    }
+                }
+            }
+            .title {
+                height: 4rem;
+                width: 100%;
+                line-height: 4rem;
+                text-align: center;
+                font-size: 1.2rem;
+                color:rgba(255,255,255,0.8);
+            }
+        }
+    }
+</style>
+

@@ -1,0 +1,67 @@
+<template>
+  <time>{{str}}</time>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      curTime: Date.now(),
+    }
+  },
+  props: {
+    time: Number,
+    fmt: {
+      type: String,
+      default: 'dd:hh:mm:ss'
+    },
+    noDay: {
+      type: Boolean,
+      default: false
+    }
+  },
+  computed: {
+    str() {
+      if (this.time < this.curTime) return '00:00'
+      var remain = (this.time - this.curTime) / 1000,
+        h = parseInt(remain / 3600),
+        m = parseInt(remain / 60 % 60),
+        s = parseInt(remain % 60),
+        day = 0
+
+      if (!this.noDay && h >= 24) {
+        day = parseInt(h / 24)
+        h = h % 24
+      }
+
+      const fmtData = {
+        dd: this.fix(day),
+        hh: this.fix(h),
+        mm: this.fix(m),
+        ss: this.fix(s),
+      }
+
+      let r = this.fmt
+      for (const k in fmtData) {
+        r = r.replace(new RegExp(k, 'g'), fmtData[k])
+      }
+
+      return r
+    },
+  },
+  methods: {
+    fix(i) {
+      return i < 10 ? '0' + i : i;
+    }
+  },
+  mounted() {
+    setInterval(() => {
+      this.curTime = Date.now()
+    }, 1000)
+  },
+}
+</script>
+
+<style>
+
+</style>
