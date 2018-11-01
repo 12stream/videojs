@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="format-detection" content="email=no" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="description" content="梦网云播" />
+    <link rel="stylesheet" href="css/fakeloader.css" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/config.js"></script>
+</head>
+<body>
+    <div>
+        <div class="fakeloader">  
+        </div>
+
+        <section id="section-navigation">
+            
+        </section>
+
+        <div class="container text-center">
+            <h1 style="margin-top:250px;text-align: center;">授权中</h1>
+        </div>
+    </div>
+    <script src="js/fakeloader.min.js"></script>
+        <script>
+            $(document).ready(function(){
+                $(".fakeloader").fakeLoader({
+                    timeToHide:520000,
+                    bgColor:"#1abc9c",
+                    spinner:"spinner6"
+                });
+            });
+            (function ($) {  
+             //扩展方法获取url参数  
+            $.getUrlParam = function (name) {  
+                    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象 
+                    var r = window.location.search.substr(1).match(reg);  //匹配目标参数           
+                    if (r != null) return unescape(r[2]); return null; //返回参数值  
+                    }  
+              //console.log($.getUrlParam('auth_code'));
+              window.location.href= config.serverUrlNew + "/portal20/#/mainPage/operateManage?code="+$.getUrlParam('auth_code');
+            })(jQuery); 
+        </script>
+</body>
+
+</html>

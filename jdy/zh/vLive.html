@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en" data-dpr="1" style="font-size: 36px;">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<!-- <meta name="apple-itunes-app" content="app-id=1270760552"> -->
+	<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<!--<meta name="x5-fullscreen" content="true">-->
+	<!--<meta name="full-screen" content="yes">-->
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="format-detection" content="telephone=no, email=no">
+	<meta name="screen-orientation" content="portrait">
+	<!-- uc强制竖屏 -->
+	<meta name="x5-orientation" content="portrait">
+	<!-- QQ强制竖屏 -->
+	<!--<meta http-equiv="Pragma" content="no-cache">-->
+	<!--<meta http-equiv="Cache-Control" content="no-cache">-->
+	<!--<meta http-equiv="Expires" content="0">-->
+	<!-- <link rel="dns-prefetch" href="3rdlibs">
+	<link rel="dns-prefetch" href="static"> -->
+
+	<!--<title id="pageTitle"></title>-->
+
+	<!-- 预解析 -->
+	<!-- <link rel="dns-prefetch" href="//montnetstest.facebac.com/H5/videoplayer/bac_liveKing/"> -->
+	<!--<link rel="dns-prefetch" href="//alivet07.facebac.com">-->
+	<!-- 预加载指定资源 -->
+	<!-- <link rel="prefetch" href="" id="preLoadSource"> -->
+	<!-- 预下载资源 -->
+	<!-- <link rel="prerender" href="" id="preLoadSource1"> -->
+	<meta name="keywords" content="梦网云播">
+	<link rel="stylesheet" href="css/index.css?v=17-2018100803">
+	<link rel="stylesheet" href="css/swiper.min.css">
+	<script charset="utf-8" src="js/config.js?v=17-2018100803"></script>
+	<script charset="utf-8" src="js/jquery.min.js"></script>
+	<script src="js/vconsole.min.js"></script>
+	<script charset="utf-8" src="js/commonUtil.js?v=17-2018100803"></script>
+	<script charset="utf-8" src="js/md5.js?v=17-2018100803"></script>
+	<script charset="utf-8" src="js/template.js"></script>
+
+	<style>
+	</style>
+	<script>
+		var liveID = getUrlParam("liveid");
+		var videoID = getUrlParam("videoid");
+		var vboID; 
+		var isUserAttention;
+		// 是否开启第三方授权  1是
+		var is_else;
+		var noLive;
+		var pcVideo;
+		var vboApi = config.vboApi;
+		// 获取直播间信息
+		function getLiveInfo(liveID) {
+			var info;
+			$.ajax({
+				async: false,
+				type: 'GET',
+				url: config.lhServerUrl + '/api/mwlive/live/get_info.do?id=' + liveID,
+				dataType: 'json',
+				success: function (data) {
+					if (data.code == "200" && data.data) {
+						info = data.data;
+					}else{
+						noLive = 0;	
+					}
+				},
+			});
+			return info;
+		}
+		
+		
+		// 校验appid
+		function checkAppid(appid,userId,pay){
+			var checkResult;
+			$.ajax({
+				async:false,
+				url: vboApi + 'wecha_authorization/check_appid',
+				type: "POST",
+				data: {					
+					appid: appid,
+					user_id: userId
+				},
+				success: function (data) {					
+					// pay_type支付类型（0：默认支付，1：第三方微信支付）
+					// if( data.result.pay_type == 1 && checkStr(storage.userInfo_third)){
+					// 	payOpenID = JSON.parse(storage.userInfo_third).openid;
+					// 	console.log("第三方支付"+payOpenID);
+					// }else if(data.result.pay_type == 0 && checkStr(storage.userInfo_mwyb)){
+					// 	payOpenID = JSON.parse(storage.userInfo_mwyb).openid;	
+					// 	console.log("云播支付"+payOpenID);
+					// }
+					// if(pay){
+					// 	// 云播支付
+					// 	if(data.result.pay_type == 0 && !checkStr(storage.userInfo_mwyb)){
+					// 		storage.clear();
+					// 		location.href = getAccreditUrl(liveInfo.user_id);
+					// 	}
+					// }					 
+					// accredit_type 授权类型（0：默认支付，1：第三方微信支付）					
+					console.log("校验appid++++++++++++++" + data.pay_type);
+					checkResult = data.code == 1?true:false;
+				}								
+			});
+			return checkResult;
+		}
+		// 直播间信息		
+		var liveInfo = getLiveInfo(liveID);
+		if(!checkStr(liveInfo.user_id)){
+			liveInfo.user_id = '0';
+		}
+		console.log(liveInfo)
+		if (IsPC()) {			
+			var pcUrl = config.myServerUrl+'/PC20/webLive/index.html?liveid=' + liveID ;
+			location.href = pcUrl + "&ver=" + 10000 * Math.random(1, 10000);
+		}
+		function setCookie(c_name, value, expiredays) {
+			var exdate = new Date();
+			exdate.setDate(exdate.getDate() + expiredays);
+			document.cookie = c_name + "=" + escape(value) +
+				((expiredays == null) ? "" : ";expires=" + exdate.toGMTString())
+		}
+		function getCookie(c_name) {
+			if (document.cookie.length > 0) {
+				c_start = document.cookie.indexOf(c_name + "=");
+				if (c_start != -1) {
+					c_start = c_start + c_name.length + 1;
+					c_end = document.cookie.indexOf(";", c_start);
+					if (c_end == -1) c_end = document.cookie.length;
+					return unescape(document.cookie.substring(c_start, c_end))
+				}
+			}
+			return ""
+		}
+		function getCookie2(name) //取微信授权后的信息是由后端存在cookie里
+		{
+			var offset, cookieValue;
+			var search = name + "=";
+			if (document.cookie.length > 0) {
+				offset = document.cookie.indexOf(search);
+				if (offset != -1) {
+					offset += search.length;
+					end = document.cookie.indexOf(";", offset);
+					if (end == -1)
+						end = document.cookie.length;
+					cookieValue = unescape(document.cookie.substring(offset, end));
+					console.log(cookieValue);
+				}
+			}
+			return cookieValue;
+		}
+		function getUrlParam(name) {
+			var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+			var r = window.location.search.substr(1).match(reg);
+			if (r != null) return decodeURI(r[2]);
+			return null;
+		}
+		function checkStr(vab) {
+			if (typeof (vab) == "undefined" || null == vab || "" == vab || "undefined" == vab || undefined == vab  ) {
+				return false;
+			}
+			return true;
+		}
+		function isWeiXin() {
+			var ua = window.navigator.userAgent.toLowerCase();
+			if ((ua.match(/MicroMessenger/i) == 'micromessenger') && (ua.indexOf('mobile') > -1)) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		function IsPC() {
+			var userAgentInfo = navigator.userAgent;
+			var Agents = ["Android", "iPhone",
+				"SymbianOS", "Windows Phone",
+				"iPad", "iPod"];
+			var flag = true;
+			for (var v = 0; v < Agents.length; v++) {
+				if (userAgentInfo.indexOf(Agents[v]) > 0) {
+					flag = false;
+					break;
+				}
+			}
+			return flag;
+		}
+		//获取参数赋值object
+		function  getParams(val,obj){		
+			paramsVal = decodeURIComponent(val).split(",");
+			obj.nickname  = paramsVal[1];
+			obj.openid  =  paramsVal[2];
+			obj.weixin_uid  =  paramsVal[2];
+			obj.unionid  =  paramsVal[3];//unionid
+			obj.imgUrl  =  paramsVal[4];//头像
+			obj.appid  =  paramsVal[8];//APPID				
+			return  JSON.stringify(obj); 
+		}
+		function getDomain(weburl){ 
+			var urlReg=/http:\/\/([^\/]+)/i; 
+			domain = weburl.match(urlReg);
+			return ((domain != null && domain.length>0)?domain[0]:"");
+		}
+
+	
+		function check_version(){
+			var storage = window.localStorage;
+			var version = config.version;
+			var localVersion = storage.version;
+			if(!version){
+				return ;
+			}
+			if( !checkStr(localVersion)  || version != localVersion ){
+				
+				storage.clear();
+				storage.version  = version;
+			}
+		}
+
+		
+		// 缓存设置、限定时间内不需要重复授权登录
+		var checkCache = function(){
+			if(checkStr(storage.stayT)){
+				var lostT = (new Date().getTime() - storage.stayT)/1000;
+				if(lostT >= 3600){		//超过时间(秒)   重新授权
+					storage.stayT = (new Date().getTime());
+					if(isWeiXin()){  //微信授权==
+						location.href = getAccreditUrl(liveInfo.user_id);
+					}
+				}
+			}else{
+				storage.stayT = new Date().getTime();
+			}
+
+		};
+		var nickname = "";	//昵称
+		var uid =  "";//
+		var openID = "";
+		var imgUrl = "";//头像
+		var unionid = "";//unionid
+		var weixin_uid = "";
+		var userInfo_third  = {};
+		var userInfo_mwyb = {};
+		var storage = window.localStorage;
+		var paramsUser =getUrlParam("params");
+		var paramsUserMwyb='';
+		var check_appid  ='';
+		storage.liveID = liveID;
+		if(checkStr(getUrlParam("vbo_cookie"))){
+			paramsUserMwyb = getUrlParam("vbo_cookie");
+		}
+		// 获取用户信息
+		if(window.localStorage && (window.localStorage.setItem('abcde', 123) , window.localStorage.getItem('abcde') == 123)){
+			if(isWeiXin()){
+				check_version();
+			}
+			// ||storage.openid
+			if(commonUtils.checkStr(paramsUser)||commonUtils.checkStr(paramsUserMwyb)){		
+				// 第三方授权的用户信息
+				if(commonUtils.checkStr(paramsUser)){
+					storage.getUserInfo = 1;
+					console.log("第三方授权的用户信息："+ getParams(paramsUser,userInfo_third));													
+					storage.userInfo_third = getParams(paramsUser,userInfo_third);
+					var data = JSON.parse(storage.userInfo_third);
+					storage.nickname =  data.nickname;//昵称
+					storage.openid = data.openid;//openid
+					storage.weixin_uid = data.weixin_uid;
+					storage.unionid = data.unionid;//unionid
+					storage.imgUrl = data.imgUrl;//头像								
+					storage.appid = data.appid;//APPID		
+					if(!storage.accreditUrl2){
+						var str =  window.location.href.split("&params")
+						var newHref = str[0];	
+						window.location.href = newHref;
+					}								
+				}
+				//云播授权的用户信息			
+				if(commonUtils.checkStr(paramsUserMwyb)){
+					console.log("梦网云播授权的用户信息："+ getParams(paramsUserMwyb,userInfo_mwyb));
+					storage.userInfo_mwyb = getParams(paramsUserMwyb,userInfo_mwyb);
+					var data = JSON.parse(storage.userInfo_mwyb);
+					var str =  window.location.href.split("&vbo_cookie")
+					var newHref = str[0];	
+					window.location.href = newHref;
+				}	
+				if(storage.userInfo_third){
+					var data = JSON.parse(storage.userInfo_third);
+					nickname =  data.nickname;//昵称
+					openID = data.openid;//openid
+					weixin_uid = data.weixin_uid;
+					unionid = data.unionid;//unionid
+					imgUrl = data.imgUrl;//头像								
+					appid = data.appid;//APPID					
+				}
+																								
+				if(storage.accreditUrl2){
+					var url = storage.accreditUrl2;
+					storage.removeItem("accreditUrl2");
+					location.href = url;
+				}
+			}
+			// 检查appid
+			if(isWeiXin()){ //微信授权
+				
+				if(checkStr(storage.userInfo_third)&&(!commonUtils.checkStr(paramsUser)||!commonUtils.checkStr(paramsUserMwyb))){			
+					if(!checkAppid(JSON.parse(storage.userInfo_third).appid,liveInfo.user_id)){
+						storage.clear();
+						check_version();
+						location.href = getAccreditUrl(liveInfo.user_id);						
+					}	
+				}
+				else if(!checkStr(storage.userInfo_third)){ //0912 修复反复刷新	
+					storage.clear();
+					check_version();
+					location.href = getAccreditUrl(liveInfo.user_id);				
+				}	
+			}					
+		}
+		// else if(checkStr(storage.userInfo_third)){  //0912 修复反复刷新
+		// 	checkCache();
+		// }
+		else{
+			if(isWeiXin() && storage.getUserInfo!=1){ //微信授权
+				location.href = getAccreditUrl(liveInfo.user_id);
+			}
+		}
+		// 获取主播id获取授权地址
+		function getAccreditUrl(userId) {
+			console.log("获取授权地址的userID:"+userId);
+			var accreditUrl;
+			var pageUrl;
+			var url = getDomain(window.location.href);
+			console.log("页面地址地址地址"+url);
+			if (commonUtils.getUrlParam("liveid")) {
+				pageUrl = url + '/H520/vLive.html?liveid=' + commonUtils.getUrlParam("liveid");
+			} else {
+				pageUrl = url + '/H520/video.html?videoid=' + commonUtils.getUrlParam("videoid");
+			}
+			console.log("授权地址的参数pageuurl:"+pageUrl)
+			// 根据点播id查询用户id
+			if (commonUtils.checkStr(liveID)) {
+				$.ajax({
+					async:false,
+					url: vboApi + 'wecha_authorization/get_accredit_url',
+					type: "POST",
+					data: {
+						user_id: userId,
+						url: pageUrl,
+					},
+					success: function (data) {
+						if (data.code == '1') {
+							console.log("授权地址"+data.result.url);						
+							accreditUrl = data.result.url;
+							// 云播授权地址	
+							if(checkStr(data.result.url2)){
+								storage.accreditUrl2 =	data.result.url2;
+							}																																
+						}
+					}								
+				});
+				return accreditUrl;				
+			}
+		}	
+		
+
+	</script>
+</head>
+
+<body style="font-size: 12px;cursor:pointer;">
+	<div class="spinner">
+		<div class="delete_live" style="display: block;">
+			<div class="delete_live_img">
+				<img src="./image/mobile/imgDefault.png" alt="">
+				<p class="delete_live_p">
+					直播加载中
+					<span class="bounce bounce1"></span>
+					<span class="bounce bounce2"></span>
+					<span class="bounce bounce3"></span>				
+				</p>
+			</div>		
+		</div>
+	</div>
+	<div class="page_main">
+			<div id="wrap_n" class="wrap">
+					<!--删除直播后的显示-->
+					<div class="delete_live">
+						<div class="delete_live_img">
+							<img src="./image/mobile/imgDefault.png" alt="">
+							<p class="delete_live_p">房间已被删除</p>
+						</div>
+					</div>
+					<!-- 直播间下线的显示 -->
+					<div class="tapeout_live">
+						<div class="tapeout_live_img">
+							<img src="./image/mobile/imgDefault.png" alt="">
+							<p class="tapeout_live_p">房间已被下线</p>
+						</div>
+					</div>
+					<!--预约模块-->
+					<section class="appoint appoint_show" id="appoint">
+			
+						<div class="appoint_mode">
+							<div class="appoint_mode_center swiper-container wrapper2" id="appoint_mode_center">
+								<div class="swiper-wrapper">
+									<div class="swiper-slide swip">
+										<div class="appoint_top">
+											<img class="appoint_img" src="./image/mobile/video-default.jpg?ver=1.4" alt="" style="display: none;">			
+										</div>
+										<div class="live_state">
+											<div id="djs_ready" class="djs_ready">
+												<span class="tishi_djs">离直播开始还有</span>
+												<p id="countDown">
+													<span class="num" id="day">&nbsp;&nbsp;</span>
+													<b>天</b>
+													<span class="num" id="hour">&nbsp;&nbsp;</span>
+													<b>时</b>
+													<span class="num" id="minute">&nbsp;&nbsp;</span>
+													<b>分</b>
+													<span class="num" id="second">&nbsp;&nbsp;</span>
+													<b>秒</b>
+												</p>
+											</div>
+											<p class="livetime_end"></p>
+											<p class="livetime_end2" id="blur"></p>
+										</div>
+										<div class="active_H">
+											<h4 class="active_title active_titlel"></h4>
+											<!--<p class="start_way"><span class="start_way_t"></span></p>-->
+										</div>
+										<div class="djs_mode">
+											<p class="start_time appointCount" >预约人数：<span class="reservation_number col_26"></span></p>
+			
+											<p class="start_time">开始时间：
+												<span class="start_time_now col_26"></span>
+											</p>
+											<p class="start_time">观看权限：
+												<span class="start_way_t col_26">免费</span>
+											</p>
+										</div>
+										<div class="active_txt"></div>
+										<div class="noData">
+											<img class="noDataImg" src="./image/icon_wu.png" alt="">
+											<p class="noDataText">暂无简介</p>
+										</div>
+										<!-- <img class="banquan_img" style="width: 50.6%;margin:0 auto;margin-top: 2.88rem;padding-bottom: 1rem;display: block;" src="image/banquan.png?ver=0227"
+										 alt=""> -->
+									</div>
+								</div>
+								<!-- Add Scroll Bar -->
+								<div class="swiper-scrollbar scrollbarsd"></div>
+			
+							</div>
+						</div>
+						<div id="btn_botom">
+							<p class="go_pay"><button  id="go_pay">立即进入</button></p>
+							<p class="now_in">立即进入</p>
+							<p class="now_appoint">请提醒我</p>							
+						</div>
+
+						<!-- 门票购买 start -->
+						<div class="fix_bottom_btn" id="tiketsBtn" >					
+						</div>
+						<script id="liveInfoTem" type="text/html">
+							<span class="btn_left" data="" id="useCode">{{type==0?"请提醒我":"立即进入"}}</span><span class="btn_right" id="buyTiketsBtn">购票（¥{{money}})</span>
+						</script>
+						<div id="buyTip" class="modal_box" style="display: none;">
+							<div class="modal_content">
+								<span class="close_qr"></span>
+								<p class="fz_39">该视频需要门票才能观看</p>
+								<p class="fz_42">购买价格为<span class="ticket_price"></span>元</p>
+								<div class="bg_linear close_btn buy_btn">购买使用</div>
+							</div>
+						</div>
+						<div id="noTickets" class="modal_box" style="display: none;">
+							<div class="modal_content">
+								<span class="close_qr"></span>
+								<div class="tips fz_42">余票不足</div>
+								<div  class="bg_linear close_btn" >确定</div>
+							</div>
+						</div>
+
+						<div id="loseEfficacy" class="modal_box" style="display: none;">
+							<div class="modal_content">
+								<span class="close_qr"></span>
+								<div class="tips fz_39" style="margin-top:0.34rem;">您的门票已经失效</div>
+								<div class="fz_39" style="margin-top:0.22rem;">无法观看视频，需要提供新的门票</div>
+								<div  class="modal_btn" style="margin-top:0.55rem;">
+									<span class="btn_blue">重新输入</span>
+									<span class="btn_orange">再次购票</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- 门票购买 end -->
+
+						<div class="appoint_shuru">
+							<div class="appoint_black_bg"></div>
+							<div class="appoint_shuru_mode">
+								<p class="appoint_p">预约手机号
+									<span>临近开播时间，我们将发送短信提醒您</span>
+								</p>
+								<input id="appoint_inpput" type="tel" pattern="[0-9]*" maxlength="11" class="appoint_inpput" placeholder="请输入手机号" onkeyup="this.value=this.value.replace(/\D/g,'')"
+								 onafterpaste="this.value=this.value.replace(/\D/g,'')">
+								<span class="appoint_span">请输入正确的手机号</span>
+								<a class="cansole_appoint" href="javascript:;"></a>
+								<a class="sure_appoint" href="javascript:;">确认</a>
+							</div>
+						</div>
+					</section>
+					<!--预约模块end-->
+					<div class="tishi_de">
+						<p class="tishi_de_title">您已预约成功</p>
+					</div>
+					<section class="player-area" data-init="mobile/watch" style="background: #000;">
+						<!--直播倒计时提示	-->
+						<div class="live_tips" id="live_djs" style="position: absolute;width: 100%;height: 100%;text-align: center;">
+							<img id="bg-img" class="bg-img" src="">
+							<p class="p1 djs_ready" id="djs_ready2" style="display: table-cell;vertical-align: bottom;position: absolute; width: 100%;bottom: -0.8rem; font-size: 0.4rem;">
+								<span class="live_tp">离直播开始还有</span>
+								<span class="num" id="day2">&nbsp;</span><b>天</b>
+								<span class="num" id="hour2">&nbsp;</span><b>时</b>
+								<span class="num" id="minute2">&nbsp;</span><b>分</b>
+								<span class="num" id="second2">&nbsp;</span><b>秒</b>
+							</p>
+							<div class="loading" style="display: none;">
+								<!-- <img src="static/img/mobile/loadingin1.png"> -->
+								<!-- <img class="move" src="image/loading.png"> -->
+								<div class="load-container load6">
+									<div class="loader">Loading...</div>
+								</div>
+								<br>
+								<br>
+								 <font id="loadTip2" style="font-size:12px;">加载中，请稍候</font>
+							</div>
+							<p class="p1" id="startReady" style="display: none;">直播即将开始</p>
+							<p class="p1" id="live_end" style="display: none;">直播已结束</p>
+							<p class="p1" id="live_noSource" style="display: none;">不好意思，该直播已删除</p>
+							<p class="p1" id="live_video" style="display: none;">录像即将开始</p>
+							<p class="p1 p_img" id="live_exception" style="display: none;">信号中断,稍待片刻</p>
+							<p class="p1 p_img" id="live_error" style="display: none;">连接中断，请稍等片刻…</p>
+							<p class="p1 p_img" id="live_notice" style="display: none;">您观看的直播已被强制停播</p>
+						</div>
+						<!--直播倒计时提示	-->
+						
+						<div class="over_img"></div>
+						<div class="video-js-box isShow" id="videoBox" >
+							<div class="linear_gradien">					
+							</div>	
+							<div class="views_number" id="live_showIcon">
+								<i class="dot_icon"></i>
+								<span class="live_icon">直播</span>
+								<span id="viewsNum"></span>
+							</div>			
+							<!-- <a href="javascript:void(0);" class="expression none bulletScreen" title="弹幕" id="danmuBtn"></a> -->
+							<!-- <p id="logo" style="display: none;">重 播</p> -->
+							<!-- http://qv.facebac.com/hls/13a61d1077279b9fcfe1/2rw3fptojo3n7lrkdf2a/n_n/c5c921362823848b4d0166619d4df0d5.m3u8 
+								http://qv.facebac.com/hls/22fd832373133c8d64ff/tcd4rcxpwqg14swyxtxy/480_25_4_500_4_3_n/85f2f1ad0a16aab231a465ff7acfb10d.m3u8-->
+							<div class="logo_show">
+								<img src="" alt="">
+							</div>
+							<div class="init_v_logo">
+								<img src="" alt="">
+							</div>						
+							<div id="video_IMG"></div>
+							
+							<video  id="example_video_1" class="video-js" webkit-playsinline=""
+								playsinline="" x5-playsinline="" x-webkit-airplay="allow"
+								width="100%" height="100%" src="" preload="true" poster="" >
+							</video>
+							<!--poster="image/mobile/video-default.jpg "  -->
+							<audio id="audio" src="">
+							</audio>
+							<!-- <img alt="" src="static/images/mobile/video-default.jpg" style="width: 100%;">
+								<div class="live_tips" style="position: absolute;width: 100%;height: 100%;text-align: center;display: block;">
+								<p class="p1">直播已结束</p>
+							</div> -->
+							<span id="playBtn" class="play" data-id="1">
+								<i class="play_btn" id="play_btn"></i>
+							</span>
+							<div class="loading" style="display: none;">
+								<!-- <img src="static/img/mobile/loadingin1.png"> -->
+								<!-- <img class="move" src="image/loading.png"> -->
+								<div class="load-container load6">
+									<div class="loader">Loading...</div>
+								</div>
+								<br>
+								<br>
+								<font id="loadTip">加载中，请稍候</font>
+							</div>
+							<!--  控制条 直播 -->
+							<!-- <div class="e-video-control" style="display: block;">
+								<div class="video-btn-ul">
+									<ul class="ul">
+										<li class="stopBtn active"></li>
+									</ul>
+								</div>
+								<div class="video-prog-box text-center">
+									<div class="video-plan currentTime">00:00</div>
+									<div class="video-all-time len"></div>
+								</div>
+								<div class="pull-right danmuBtn"></div>
+								<div class="pull-right fullScreenBtn"></div>
+							</div> -->
+							<!-- <div class="e-video-control" style="display: block;">
+								<div class="video-btn-ul">
+									<ul class="ul">
+										<li class="stopBtn"></li>
+									</ul>
+								</div>
+								<div class="video-prog-box text-center">
+									<div class="video-plan currentTime fl">00:00</div>
+									<div class="video-all-time len fr"></div>
+								</div>
+											<div class="pull-right danmuBtn"></div>            <div class="pull-right fullScreenBtn"></div>
+							</div> -->
+							<!-- 控制栏 -->
+							<div class="e-video-control" style="display: none;">
+								<div class="video-btn-ul">
+									<ul class="ul">
+										<li class="stopBtn"></li>
+									</ul>
+								</div>
+								<!--  直播 -->
+								<div class="video-prog-box text-center" id="liveActive" style="display: none;margin-top: 0.29rem;">
+									<div class="video-plan currentTime">00:00</div>
+									<!--<div class="video-all-time len"></div>-->
+								</div>
+								<!-- 点播 -->
+								<div class="video-prog-box" id="liveNone" style=" /* margin: 0.266667rem 2.266667rem 0 1.466667rem;display: block; */">
+									<div class="video-prog-bar">
+										<a class="video-playProg-btn"></a>
+										<span class="video-prog">1</span>
+										<span class="video-bufferProg bufferProg">2</span>
+										<span class="video-playProg"></span>
+										<span class="video-current-time showTime">
+											<b class="showCurrenTime"></b>
+											<i class="video-current-time-i"></i>
+										</span>
+									</div>
+									<div class="video-plan currentTime fl">00:00</div>
+									<div class="video-all-time len fr">00:00</div>
+								</div>
+								<!-- <div class="pull-right danmuBtn"></div>  -->
+								<div class="fr fullScreenBtn"></div>
+								<a href="javascript:void(0);" class="expression none" title="弹幕" id="danmuBtn"></a>
+							</div>
+							<div class="player-danmu">
+								<div>
+									<div id="player-danmu" style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; z-index: 97; color: rgb(255, 255, 255); overflow: hidden;">
+									</div>
+								</div>
+							</div>
+						</div>
+					</section>
+					<section class="video-contorl" style="display: block;">
+						<div class="vc0817" style="display: none;font-size: 0.4rem;">
+							<div class="wap-player-logo"></div>
+							<span class="viewed_num">
+								<span class="v-js-live1" id="numRecord"></span>人看过</span>
+							<span class="fl change-definitions1" id="change-definitions00" data-toggle="modal1" data-target="#modal-selMiccdn1"></span>
+							<!-- <a href="javascript:void(0);" class="expression none" title="弹幕" id="danmuBtn"></a> -->
+							<a id="openApp" href="javascript:;" class="openApp" style="display: none;">打开APP</a>
+						</div>
+					</section>
+					<div class="show_APP">
+						<div class="show_APP_middle">
+							<span class="close_app"></span>
+							<p>使用
+								<span style="color: #2b94ff;">梦网云播APP</span>观看效果更好哦！</p>
+							<a class="open_App" href="javascript:;">打开APP</a>
+						</div>
+					</div>
+					<section class="loginBox">
+						<div class="loginTit">用户登录<sup  style="float: right;"><span  id="closeLogin"></span></sup></div>
+						<div class="form-sent">
+							<div class="form-item" style="text-align: center;">
+								<div class="txt"><input id="login_phone" type="tel" pattern="[0-9]*" maxlength="11" onkeyup="this.value=this.value.replace(/\D/g,'')" class="js_login_phone_input" placeholder="请输入您的手机号" maxlength="11"/></div>
+							</div>
+						<div class="form-item" style="margin-top: 0.15rem;position: relative;">
+							<div class="txt">
+								<input id="login_pass" type="tel" class="js_login_code_input" placeholder="请输入验证码"  pattern="[0-9]*" maxlength="6" onkeyup="this.value=this.value.replace(/\D/g,'')"  />
+								<input  id="code_btn" type="button" class="codeBtn" value="获取验证码" />
+							</div>
+						</div>
+						<div class="form-item" style="margin-top: 0.15rem;">
+							<div class="txt">
+								<input id="login_btn" type="button" class="summit" value="登 录" />
+							</div>
+						</div>
+						
+						<div class="form-item form-item-code" style="display: none;padding-bottom: 0.5rem;">
+							<div class="txt" style="width:60%;float:left;"><input id="login_captcha_input" type="text" class="basic-ipt js_login_captcha_input" placeholder="请输入验证码"></div>
+							<div style="float:right;"><span class="two-code js_login_captcha">
+							<img src="" id="login_captcha_img"><span class="code-tips">看不清，换一张</span></span></div>
+						</div>
+						<div style="height: 0.12rem"><span class="js_login_warring red"></span></div>				
+						<div class="dialog" style="">
+							<div class="mask"></div>
+							<div class="content" style="">
+								<p class="title">用户注册协议</p>
+								<div class="deal_close" id="deal_close"><img src="image/closeBtn.png"></div>
+								<p class="dealText">【总则】<br>
+									尊敬的用户，您好！欢迎您使用梦网云播软件及服务！
+											使用梦网云播软件（以下统称"本软件"）及服务，您应当阅读并遵守本协议，否则您无权下载、安装或使用本软件及相关服务。
+											您的下载、安装、使用、登录等行为即视为您已阅读并同意本协议的约束。请您务必审慎阅读、充分理解各条款内容，特别是免除或者限制责任的条款，以及开通或使用某项服务的单独协议。
+											如果您未满18周岁，请在法定监护人的陪同下阅读本协议，并特别注意未成年人使用条款。<br>
+									一、用户行为规范<br>
+									1.1 凡是下载、浏览和发布内容的用户均为梦网云播用户(以下统称"用户")。<br>
+									1.2用户享有言论自由的权利。<br>
+									1.3用户需遵守《中华人民共和国保守国家秘密法》、《中华人民共和国著作权法》、《中华人民共和国计算机信息系统安全保护条例》、《计算机软件保护条例》、《互联网电子公告服务管理规定》、《信息网络传播权保护条例》等相关法律、法规和实施办法。如果用户行为可能违反上述法律、法规，梦网云播可以在任何时候，不经事先通知终止向该用户提供服务。<br>
+									1.4内容审核标准<br>
+									严重违规行为（A类违规）<br>
+									严重违规行为是指严重违反国家相关法律法规的行为。在视频直播中若出现以下行为，将构成严重违规，包括但不限于：<br>
+									(1) 发表反党反政府的言论，或做出侮辱诋毁党和国家的行为，如：<br>
+									<span>违反宪法确定的基本原则的；</span>
+									<span>危害国家安全，泄露国家秘密，颠覆国家政权，破坏国家统一的；</span>
+									<span>损害国家荣誉和利益的；</span>
+									<span>煽动民族仇恨、民族歧视，破坏民族团结的；</span>
+									<span>破坏国家宗教政策，宣扬邪教和封建迷信的；</span>
+									<span>散布谣言，扰乱社会秩序，破坏社会稳定的；</span>
+									<span>散布暴力、恐怖或者教唆犯罪的；</span>
+									<span>煽动非法集会、结社、游行、示威、聚众扰乱社会秩序的；</span>
+									<span>其他可能引起或已经引起不良影响的政治话题。</span>
+									(2) 进行具有性挑逗性质的表演。如表演脱衣舞等。<br>
+									(3) 与他人进行互相性挑逗形式的表演。如相互抚摸敏感部位、进行能让人产生性幻想的动作、在床上以任何抚摸形式进行表演等。<br>
+									(4) 展示具有性特征的身体敏感部位。如展示女性胸部、男女性臀部、男女大腿内侧及生殖器官、穿透视装等。<br>
+									(5) 展示枪支刀具、进行高危表演。如晃动刀具、枪支、高仿真枪支、表演具有高度危险性的节目等。<br>
+									(6) 表演危害他人人身安全的节目。如：殴打他人、以枪支刀具威胁他人等。<br>
+									(7) 传播毒品。如展示毒品样品、表演及传授毒品吸食或注射方式、讲解毒品制作过程等。<br>
+									(8) 宣传传销机构、哄骗用户加入传销组织、或本人组织传销。<br>
+									(9) 表演危害自身安全的节目，如自杀、自残。<br>
+									(10) 进行其他类涉政、涉黄、违法、侵权、或威胁生命健康的表演。<br>
+									一般违规行为（B类违规）<br>
+									一般违规行为是指违反国家相关法律法规，但在程度上相对轻微的违规行为。在视频直播中若出现以下行为，将造成一般违规，包括但不限于：<br>
+									(1) 在直播间发表或播放低俗言论、持续模仿各种带有性挑逗的声音。<br>
+									(2) 通过模仿色情动作或进行自我抚摸、并企图暴露敏感部位等引起性挑逗的行为。<br>
+									(3) 持续爆粗口、谩骂，或演唱带有黄色、擦边、粗口、暴力等违禁歌曲。<br>
+									(4) 穿戴或展示浴袍、内衣裤等非公众场合衣物；cos类妆容低俗、不雅；酒后直播表现耍酒疯、酣睡等醉态；或使用性用品作为表演道具，使用道具模仿带有低俗等动作。<br>
+									(5) 穿着过于暴露，男性赤裸上身，女性着透视装、肉色紧身内衣、三点式露脐泳装，着过于暴露服装，或长时间将镜头聚焦于某敏感部位、通过拉扯或使用道具引起观众对敏感部位的注意等。<br>
+									(6) 躺在床上直播。<br>
+									(7) 身着带有中华人民共和国（包含港澳台）国家行政机关人员军衔的工作制服进行直播。包括警服、军服、工商制服、检察院制服、法院制服、城管制服、路政制服等。<br>
+									(8) 在直播镜头前抽烟。<br>
+									(9) 在进行视频直播时播放录制的电影、电视剧等未经版权许可的视频。<br>
+									(10) 直播过程中玩整人游戏，包括但不限于拉丝、坐气球、机震、打屁股、抖胸抖臀等性暗示动作。<br>
+									(11) 直播过程中表演低俗舞蹈动作，包括但不限于：<br>
+									<span>对着镜头撅屁股、展示裆部；</span>
+									<span>撩上衣、裙子；</span>
+									<span>揉胸、揉臀、性感性舔嘴唇；</span>
+									<span>模拟性爱动作；</span>
+									<span>用臀部画圆；</span>
+									<span>聚焦敏感部位。</span>
+									(12) 户外直播违规行为，包括但不限于：
+									<span>进入涉黄场所，包括但不限于洗浴中心，夜店等容易产生低俗氛围或违法的场所</span>
+									<span>进入任何涉赌场所；</span>
+									<span>进入任何涉毒场所；</span>
+									<span>进入任何涉暴涉恐场所；</span>
+									<span>以恶心低俗的妆容进行直播，如将内衣裤套在头上、将各类液体涂抹于脸上（如鸡蛋洗头）等无下限的装扮，以及在脸上涂写过度低俗的涂鸦等；</span>
+									<span>直播任何暴力血腥、暴力、恶心等引起观众视听不适的内容，如虐待动物、自虐、酗酒、吃各种令人不适的物品（如袜子、烟灰、活物、死物）等行为；</span>
+									<span>进入坟地进行故意破坏、污损他人坟墓或者毁坏、丢弃他人尸骨等侮辱死者的行为；</span>
+									<span>捕捉、虐待、杀戮、食用、或者售卖受国家法律保护的野生动植物。</span>
+									二、用户隐私保护<br>
+		
+									2.1 用户的个人信息受到保护，不接受任何个人或单位的查询。国家机关依法查询除外，用户的个人设置公开除外。<br>
+									2.2 梦网云播不对外公开或向第三方提供单个用户的注册资料及用户在使用网络服务存储在本网站的非公开内容，但下列情况除外：<br>
+									(1) 事先获得用户的明确授权；<br>
+									(2) 根据有关的法律法规要求；<br>
+									(3) 按照相关政府主管部门的要求；<br>
+									(4) 该第三方同意承担与梦网云播同等的保护用户隐私的责任；<br>
+									(5) 在不透露单个用户隐私资料的前提下，梦网云播有权对整个用户数据库进行分析并对用户数据库进行商业上的利用；<br>
+									(6) 本软件包含问题咨询功能，在您提交联系方式的同时我们还会收集您的手机型号等相关信息。您咨询中所填写的联系方式，只会用于我们的客服与您沟通与反馈，除征得用户明确同意和法律明确规定外，梦网云播不会向任何第三方提供用户上传信息。您的信息不会被用于出售，出借或交换。<br>
+									三、法律责任及免责<br>
+									
+									3.1 梦网云播发布的内容仅代表作者观点，与本团队无关。对于用户言论的真实性引发的全部责任，由用户自行承担，本团队不承担任何责任。<br>
+									3.2 用户之间因使用梦网云播而产生或可能产生的任何纠纷和/或损失，由用户自行解决并承担相应的责任，与本团队无关。<br>
+									3.3 用户在梦网云播上发布的内容，本团队有权转载或引用。<br>
+									3.4 用户在任何时间段在梦网云播上发表的任何内容的著作财产权，用户许可本团队在全世界范围内免费地、永久性地、不可撤销地、可分许可地和非独家地使用的权利，包括但不限于：复制权、发行权、出租权、展览权、表演权、放映权、广播权、信息网络传播权、摄制权、改编权、翻译权、汇编权以及《著作权法》规定的由著作权人享有的其他著作财产权利。并且，用户许可本团队有权利就任何主体侵权而单独提起诉讼，
+									并获得全部赔偿。<br>
+									3.5 本团队郑重提醒用户，若出现下列情况任意一种或几种，将承担包括被关闭全部或者部分权限、被暂停或被禁止使用的后果，情节严重的，
+									
+									还将承担相应的法律责任。<br>
+									(1) 使用不雅或不恰当昵称；<br>
+									(2) 发布含有猥亵、色情、人身攻击和反政府言论等非法或侵权言论的；<br>
+									(3) 从事非法商业活动；<br>
+									(4) 假冒管理人员或破坏管理人员形象；<br>
+									(5) 使用非法软件进行刷内容、违规发布内容的行为；<br>
+									(6) 其他本团队认为不恰当的情况。<br>
+									3.6 凡内容出现以下情况之一，本团队管理人员有权不提前通知作者直接删除，并依照有关规定作相应处罚。情节严重者，本团队管理人员有权
+									
+									对其做出关闭部分权限、暂停直至禁止使用。<br>
+									(1) 发表含有本协议第7条禁止发布、传播内容的文章；<br>
+									(2) 发表无意义的灌水内容；<br>
+									(3) 同一内容多次出现的；<br>
+									(4) 违反本协议第8条的规定，发布广告的；<br>
+									(5) 内容包含有严重影响用户浏览的内容或格式的；<br>
+									(6) 其他本团队认为不恰当的情况。<br>
+									3.7 用户违反本《协议》或相关的服务条款的规定，导致或产生的任何第三方主张的任何索赔、要求或损失，包括合理的律师费，用户同意赔偿
+									
+									梦网云播与合作公司、关联公司，并使之免受损害。<br>
+									四、用户注意事项<br>
+									
+									4.1 为改善、优化相应服务，本服务可能会对您的昵称、头像以及在本软件中的相关操作信息等信息进行使用。<br>
+									4.2 您在使用本服务某一特定服务时，可能还需同意单独的协议、规则等，您在使用该项服务前请仔细阅读前述相关协议、规则。<br>
+									4.3 梦网云播有权在本服务中或通过本服务向您展现各种信息，包括但不限于广告信息、新闻信息及宣传信息等，该信息可能以系统消息或弹出
+									窗口等形式出现。<br>
+									4.4 您可以选择不向梦网云播提供您的某些信息，或者根据产品设置取消梦网云播收集某些信息，但因此可能会导致相关服务功能无法实现。<br>
+									4.5 为了增进用户体验、完善服务内容，梦网云播将不断努力开发新的服务，并为您不时提供软件更新（这些更新可能会采取软件替换、修改、
+									功能强化、版本升级等形式）。本软件可能为您默认开启自动升级、更新等功能，您可以在软件设置中自行选择是否需要开启此功能。<br>
+									4.6 为了改善用户体验，并保证服务的安全性和功能的一致性，梦网云播有权不经向您特别通知而对软件进行更新，或者对软件的部分功能效果
+									进行改变或限制。<br>
+									4.7 本软件新版本发布后，旧版本的软件可能无法使用。梦网云播不保证旧版本软件继续可用及相应的客户服务，请您随时核对并下载最新版本
+									。<br>
+									五、知识产权声明<br>
+									
+									5.1 梦网云播是本软件的知识产权权利人。本软件的著作权、商标权、专利权、商业秘密等知识产权，以及与本软件相关的所有信息内容（包括
+									
+									但不限于文字、图片、音频、视频、图表、界面设计、版面框架、有关数据或电子文档等）均受中华人民共和国法律法规和相应的国际条约保护
+									
+									，梦网云播依法享有上述相关知识产权，但相关权利人依照法律规定应享有的权利除外。<br>
+									5.2 未经梦网云播相关权利人书面同意，您不得为任何商业或非商业目的自行或许可任何第三方实施、利用、转让上述知识产权。<br>
+									六、其他事项<br>
+									
+									6.1 您使用本软件或本服务即视为您已阅读并同意受本协议的约束。<br>
+									6.2 以上各项条款内容的最终解释权及修改权归梦网云播公司所有。<br>
+									6.3 本《协议》所定的任何条款的部分或全部无效者，不影响其它条款的效力。<br>
+									6.4 本协议的成立、生效、履行、解释及纠纷解决，适用中华人民共和国大陆地区法律（不包括冲突法）。<br>
+									6.5 若您和梦网云播之间发生任何纠纷或争议，首先应友好协商解决；协商不成的，您同意将纠纷或争议提交本协议签订地有管辖权的人民法院
+									管辖。<br>
+									6.6 本《协议》的版权梦网云播所有，梦网云播保留一切解释和修改权利。<br>
+									七、费用<br>
+									7.1 梦网云播为预付费服务，您应按照本协议约定的价格体系支付相应服务费用，前述服务费用将在后台页面上公示。您预付费用后，我们将开始提供相关服务；与此同时，您应经常查询账户余额变化情况，提前做好充值准备。若您的预付费用使用完毕未及时充值或余额不足，我们有权不经通知随时中止所有提供服务和/或技术支持，对于由此造成的任何后果您应自行承担。<br />
+									7.2 梦网云播服务价格为：观看每人每分钟0.05元。更多计费方式请联系梦网云播官方客服。<br />
+									7.3 梦网云播可能根据实际需要对收费服务的收费标准、方式等进行修改和变更，梦网云播也可能会对部分免费服务开始收费。前述修改、变更或开始收费前，梦网云播将在相应服务页面进行通知或公告。
+		
+								</p>
+							</div>
+					</div>
+						<p class="col_9B">					 
+							登录即代表您已同意<a id="openDeal" class="col_2B94FF">《用户注册协议》</a>
+						</p>			
+						<ul class="third_login">
+							<!-- <li><a id="qqlink"><img src="./image/loginIcQq.png" alt=""></a></li>
+							<li><a id="weibo_login"><img src="./image/loginIcWeibo.png" alt=""></a></li> -->
+						</ul>
+					</div>
+					</section>
+					<section class="ctrl-list">
+						<!-- 模板引擎 -->
+						<div id="menuList"></div> 
+						<script id="menuList_template" type="text/html">
+							<ul>
+								{{each list}}
+									<li type={{$value.menu_type}} class={{'tab'+$index}}>{{$value.menu_name}}
+										<i class="icon_nav"></i>
+										<span style="display:none">
+											{{$value.menu_content||0}} 
+										</span>
+									</li>							
+								{{/each}}
+							
+							</ul>
+						</script>			
+					</section>
+					<!-- tab更换 -->
+					<!-- <section class="ctrl-list">
+						<ul>
+							<li data-target="chat" id="chat_0710" class="active">聊天</li>
+							<li data-target="desc" id="desc_0710">详情</li>
+							<li data-target="rank" id="rank_0710">榜单</li>
+							<p class="list_bottom"></p>
+						</ul>
+					</section> -->
+					<!-- /* touch-action: none; */ -->
+					<div class="chatViewBox">
+						<div class="Notice">
+							<div id="noticeWrap" class="noticeWrap">
+								<div id="noticeContent" class="noticeContent">
+									公告：梦网科技祝全体员工新春快乐！祝大家狗年大吉，人旺福旺运
+								</div>
+							</div>
+						</div>
+						<section class="page-iscroll" id="page-iscroll">
+							<div class="wrapper swiper-container" id="wrapper_scroll">
+								<div class="swiper-wrapper">
+									<!-- <div class="tab-pane swiper-slide page-chat">
+										<ul id="chat-list" class="chat-list" style="/* overflow: auto;height:100%; *//* height: inherit; */">
+			
+											<li id="default_li">
+												<img class="iconNotice" src="./image/mobile/iconNotice.png" alt="">
+												<span class="sys_tile">系统通知&nbsp;:&nbsp;</span>
+												<span>梦网云播提倡绿色直播，封面和直播内容含吸烟、低俗、引诱、暴露等都将被封停账号，网警24小时在线巡查哦！</span>
+											</li>
+										</ul>
+			
+									</div>
+									<div class="tab-pane swiper-slide page-desc desc-box" style="padding: 0;">
+										<div class="profile">
+											
+											<h4 class="active_title active_titlel" id="active_title_id"></h4>
+											<p class="start_time">开始时间：
+												<span class="start_time_now col_26"></span>
+											</p>
+											<div class="start_way">
+												<p>观看权限：
+													<span class="start_way_t col_26"></span>
+												</p>
+											</div>
+											<hr class="hr_ge">
+											<div class="active_txt"></div>
+											<div class="noData">
+												<img class="noDataImg" src="./image/icon_wu.png" alt="">
+												<h4 class="noDataText">暂无简介</h4>
+											</div>
+											<img class="banquan_img" style="width: 55.6%;margin:0 auto;margin-top: 2.88rem;padding-bottom: 1rem;display: block;" src="image/banquan.png?ver=0227"
+											 alt="">
+											</br>
+										</div>
+									</div>
+									<div class="tab-pane swiper-slide video_list">
+										<div class="forecast">
+											<div class="forecast-But">
+												<a href="">
+													<p>返回直播实况</p>
+												</a>
+											</div>
+										</div>
+										<ul class="video_list_ul">
+											
+										</ul>
+									</div>
+									<div class="tab-pane swiper-slide page-recommend">
+										<ul class="recommend_list">							
+										</ul>
+									</div> -->
+									<!-- 自定义内容 -->
+									<div id="defined_Menu_content">
+										<!-- 聊天 -->
+										<div class="tab-pane swiper-slide page-chat">
+											<!-- <div class="Notice">
+												<div id="noticeWrap" class="noticeWrap">
+														<div id="noticeContent" class="noticeContent">
+															公告：梦网科技祝全体员工新春快乐！祝大家狗年大吉，人旺福旺运
+														</div>
+												</div>
+											</div> -->
+											<ul id="chat-list" class="chat-list" style="/* overflow: auto;height:100%; *//* height: inherit; */">								
+												<li id="default_li">
+													<span class="sys_tile">系统通知&nbsp;:&nbsp;</span><span>视频封面和内容含吸烟、低俗、引诱、暴露等都将被封停账号，网警24小时在线巡查哦！
+													</span>
+												</li>
+											</ul>	
+										</div>
+										<!-- 详情 -->
+										<div class="tab-pane swiper-slide page-desc desc-box">
+											<!-- 活动简介 -->
+											<div class="profile">								
+												<h4 class="active_title active_titlel" id="active_title_id"></h4>
+												<p class="start_time appointCount" >预约人数：<span class="reservation_number col_26"></span></p>
+												<p class="start_time">开始时间：<span class="start_time_now col_26"></span></p>
+												<div class="start_way">
+													<p>观看权限：<span class="start_way_t col_26"></span></p>
+												</div>
+												<!-- <hr class="hr_ge"> -->
+												<div class="active_txt" id="ac_txt_id"></div>
+												<div class="noData">
+													<img class="noDataImg" src="./image/icon_wu.png" alt="">
+													<p class="noDataText">暂无简介</p>
+												</div>
+												<!-- <img class="banquan_img"   src="image/banquan.png?ver=0227" alt=""> -->
+												</br>
+											</div>
+											<!--End-->
+										</div>
+										<!-- 录像列表 -->
+										<div class="tab-pane swiper-slide video_list">
+											<!-- 返回预告 -->
+											<div class="forecast">
+													<div class="forecast-But">
+														<a href="">
+															<!-- <img src="./image/ic_back_double@2x.png" alt=""> -->
+															<p>返回直播实况</p>
+														</a>
+													</div>	
+											</div>							
+											<ul class="video_list_ul">					
+											</ul>
+										</div>
+										<!-- 榜单 -->
+										<div class="tab-pane swiper-slide page-recommend">
+											<ul class="recommend_list">
+												<!-- <li><img class="ranking" src="./image/mobile/top_1.png" alt=""><img class="rank_head" src="./image/timg2.jpg" alt=""><span class="ranker_name">的覆盖</span><span class="flor_bin"><b>5000</b><img src="./image/mobile/bin_iocn.png" alt=""></span></li>                                        
+												<li><img class="ranking" src="./image/mobile/top_1.png" alt=""><img class="rank_head" src="./image/timg2.jpg" alt=""><span class="ranker_name">的覆盖</span><span class="flor_bin"><img src="./image/mobile/bin_iocn.png" alt=""><b>5000</b></span></li>                                         -->
+											</ul>
+										</div>	
+										<!-- 图文简介 -->
+										<div id="imageTxt" class="imageTxt">
+											
+										</div>						
+									</div>
+									<!-- 自定义end -->
+									<div id="giftList">	
+											<!-- <div class="gift_animation0">
+											<div class="viewer_style"></div>
+											<div class="viewer_infor">
+											<p class="viewer_name">爱上嘎嘎嘎</p>
+											<p class="gift_name">送一支玫瑰</p>
+											</div>
+											<div class="sent_gift"></div>
+											</div>					 -->
+									</div>
+								</div>
+								<!-- Add Pagination -->
+								<div class="swiper-pagination swiper_hua"></div>
+			
+							</div>
+			
+						</section>
+						<a href="javascript:;" class="rss-red-packet"></a>
+						<section class="page-footer" data-target="chat">
+							<!--<div class="chat-footer" id="chat-footer">
+								<a href="javascript:;" class="avatar">
+									  <img class="img-circle"  id="head_img" src="image/timg2.jpg" onerror="this.src='image/timg2.jpg">
+									  <script>
+										//$("#head_img").attr("src",imgUrl);
+									  </script>
+								</a>
+								<div class="to-send-msg  ">
+								</div>
+							</div>-->
+							<div class="chat-input" id="chat-input">
+								<!--<img src="" id="anzuo_head" alt="">-->
+								<div class="position_r">
+									<img class="chatroom_ic_pen" src="./image/mobile/chatroom_ic_pen.png" alt="">
+									<input  type="text" class="form-control mywords chat-input_put" name="xword" id="input_world" maxlength="140" placeholder=" 说点什么吧...">
+									<a href="javascript:void(0);" class="loginBtn" id="loginBtn">
+										<font id="logFont">登录</font>参与互动</a>
+									<a href="javascript:void(0);" type="submit" class="btn sendBt fr " id="sendBtn">发送</a>
+								</div>					
+							</div>
+						</section>
+					</div>
+				</div>
+			
+				<!-- <div class="modal modal-fullscreen modal-over" id="webinar-over" data-backdrop="false">
+				<p>直播已结束</p>
+			</div> -->
+				<!-- 红包 -->
+			
+				<!-- 礼物列表 -->
+				<div class="gift_content" style="display: none;">
+					<div id="tabBox" class="tabBox">
+						<div class="hd">
+							<ul></ul>
+						</div>
+						<div id="gift" class="bd">
+			
+						</div>
+					</div>
+					<input type="hidden" id="input_gift" />
+					<div class="gift_pay">
+						<p class="pay_style">支付方式：
+							<!-- <span></span> -->
+							<b>微信</b>
+						</p>
+						<a class="pay_btn" id="pay_btn">送出</a>
+					</div>
+				</div>
+				<!--侧边按钮-->
+				<div class="slide_nav">
+					<!--<div id="invitation"><img src="./image/mobile/Invitation.png" alt=""></div>-->
+					<div class="click_zan">
+						<div id="click_zan"></div>
+						<p class="click_zan_num">
+							<span class="true_num"></span>
+							<span class="queryLike_num">0</span>
+							<span class="queryLike_price">W</span>
+						</p>
+						<div class="heart_box">
+							<div class="myheart"></div>
+						</div>
+					</div>
+					<div class="service_btn" id="service_btn"></div>
+					<div class="QRCode" id="QRCode"></div>
+					<div class="gift_btn" id="gift_btn"></div>
+				</div>
+				<!--邀请按钮层-->
+				<!--<div class="invitation_bg">
+				<div class="invitation_btn">
+					<ul class="nvitation_list">
+						<li id="send_friend"><img src="./image/mobile/wx_icon.png" alt=""></li>
+						<li><img src="./image/mobile/wx_pyqicon.png" alt=""></li>
+					</ul>
+				</div>
+			</div>-->
+				<!--End-->
+				<!-- 人气 -->
+				<!--<div class="online_number">人气：<span id="numRecord"></span></div>-->
+				<!--End-->
+				<input type="hidden" id="giftMoney" style=" display: none; " />
+				<!-- 礼物金额 -->
+				<!-- 输入密码观看 -->
+				<div class="view_code">
+					<div class="input_code">
+						<span class="input_code_close"></span>
+						<h4>密码</h4>
+						<p>需要提供密码才能观看该直播</p>
+						<div class="code">
+							<div class="code_cover"></div>
+							<ul class="code_cover_list">
+								<li class="active_code"></li>
+								<li></li>
+								<li></li>
+								<li></li>
+								<li></li>
+								<li></li>
+							</ul>
+							<input type="tel" pattern="[0-9]*" id="pass0" maxlength="6" onkeyup="value=value.replace(/[^\w\.\/]/ig,'')" autocomplete="off">
+							<!-- <input type="tel"  pattern="[0-9]*" id="pass1" maxlength="1" onkeyup="this.value=this.value.replace(/\D/g,'')"  onafterpaste="this.value=this.value.replace(/\D/g,'')">
+										<input type="tel"  pattern="[0-9]*" id="pass2" maxlength="1" onkeyup="this.value=this.value.replace(/\D/g,'')"  onafterpaste="this.value=this.value.replace(/\D/g,'')">
+										<input type="tel"  pattern="[0-9]*" id="pass3" maxlength="1" onkeyup="this.value=this.value.replace(/\D/g,'')"  onafterpaste="this.value=this.value.replace(/\D/g,'')">
+										<input type="tel"  pattern="[0-9]*" id="pass4" maxlength="1" onkeyup="this.value=this.value.replace(/\D/g,'')"  onafterpaste="this.value=this.value.replace(/\D/g,'')">
+										<input type="tel"  pattern="[0-9]*" id="pass5" maxlength="1" onkeyup="this.value=this.value.replace(/\D/g,'')"  onafterpaste="this.value=this.value.replace(/\D/g,'')">-->
+						</div>
+						<p class="code_err" style="display: none;">验证失败，请输入正确的密码</p>
+						<div class="close"></div>
+					</div>
+				</div>
+				<!-- 聊天输入框 -->
+				<div class="modal_box" id="send_MSG">
+					<div class="input_code">
+						<div class="view_title">
+							<div class="close">取消</div>
+							<h4>聊天</h4>
+							<div class="ok_btn">发送</div>
+						</div>						
+						<div class="code">														
+							<textarea name="" id="send_content" placeholder="说点什么吧"  maxlength="140" onchange="this.value=this.value.substring(0, 140)" onkeydown="this.value=this.value.substring(0, 140)" onkeyup="this.value=this.value.substring(0, 140)" ></textarea>
+						</div>
+						<div class="view_footer">
+							<p><span id="max_num">0</span><span>/140</span></p>
+						</div>						
+					</div>
+				</div>
+				<!-- 聊天输入框 -->
+				<div class="view_tickets">
+					<div class="input_tickets">
+						<span class="input_tickets_close"></span>
+						<h4>门票</h4>
+						<p>您需要提供票码才能观看该直播</p>
+						<div class="tickets">
+							<div class="tickets_cover"></div>
+							<ul class="tickets_cover_list">
+								<li class="active_tickets"></li>
+								<li></li>
+								<li></li>
+								<li></li>
+								<li></li>
+								<li></li>
+							</ul>
+							<input type="password" id="via0" maxlength="6" onkeyup="value=value.replace(/[^\w\.\/]/ig,'')" />
+						</div>
+						<div class="shut"></div>
+						<p class="code_err"></p>
+					</div>
+				</div>
+				<!-- 重要人物入场 -->
+				<div class="view-mask" style="display: block" id="vitalMan">
+					<div class="cover-mask">
+						<div class="view-left" style="background-size: cover;background-position: center;background-repeat: no-repeat;">
+							<!-- <img src="" alt=""> -->
+						</div>
+						<div class="view-right">
+							<span class="cover-mask-close"></span>
+							<h4>余文胜</h4>
+							<div class="introduce">
+								<p></p>
+								<div class="honored"></div>
+							</div>
+							<div class="intro">清华大学EMBA深圳市梦网科技发展有限公司董事长从事电机自动化研究及设计及从事软件设计工作。机自动化研究及设计及从事软机自动化研究及 设计及从事软机梦网科技发展有限公司董事长从事电机。</div>
+						</div>
+					</div>
+				</div>
+				<!-- 验证失败 -->
+				<div class="verify">
+					<div class="view-verify">
+						<span class="input_verify_close"></span>
+						<div class="verify-room">专属直播间</div>
+						<p>对不起，您没有该直播的观看权限</p>
+						<div class="button">
+							<p>我知道了</p>
+						</div>
+					</div>
+				</div>
+			
+				<!-- 微信公众号 -->
+				<div id="wechat"  class="modal_box"></div>
+				<script id="wechat_template" type="text/html">
+					<div class="modal_content wechat_bg">
+						<span class="close_qr"></span>	
+						<p id="qr_title" class="title">{{title}}</p>											
+						<div class="qr_code">			
+							<img src={{src}} alt="" id="qr_code_url">
+						</div>
+						<p class="footer">扫描观看公众号</p>
+						<input type="hidden" id="wxshare_title" value={{wxshare_title}}>
+						<input type="hidden" id="wxshare_des" value={{wxshare_des}}>
+						<input type="hidden" id="wxshare_pic" value={{wxshare_pic}}>
+					</div>	
+				</script>
+			
+				<!-- 客服 -->
+				<div id="service"  class="modal_box"></div>
+				<script id="service_template" type="text/html">
+					<div class="modal_content wechat_bg">
+						<span class="close_qr"></span>	
+						<p id="qr_title" class="title">{{title}}</p>
+						<div class="qr_code">			
+							<img src={{src}} alt="" id="qr_code_url">
+						</div>
+						<p class="footer">扫描联系客服进行咨询</p>
+					</div>	
+				</script>
+			
+			
+				<!--End-->
+				<img alt="" src="" id="appShareImg" style=" display: none;" />
+				<!-- 微信中打开app的提示界面  -->
+				<div id="wxTip" style="display: none;">
+					<!-- <img class="btTips" src="./images/btTips.png" alt=""> -->
+					<div class="btTips_mide">
+						<h4>
+							<span>1</span>点击右上角按钮</h4>
+						<h4>
+							<span>2</span>选择在浏览器打开</h4>
+						<p class="wxTipclose_btn">关闭提示</p>
+					</div>
+				</div>
+				<!--封禁展示-->
+				<div class="Arrears">
+					<div class="Arrears_mode">
+						<!--<img class="no_money" src="./image/no_money.png" alt="">
+					<img class="hand_d" src="./image/hand_d.png" alt="">
+					<div class="Arrears_font">
+						<img class="icForbade" src="./image/icForbade.png" alt="">
+						<span>您的账号由于违规已被封禁<br>
+						如有疑问,请联系客服：400-888-3386</span>
+						<span class="sure_arrears">确定</span>
+					</div>-->
+						<img class="Arrears_modeimg" src="./image/no_video.png" alt="">
+						<p class="Arrears_modep">房间已被封禁</p>
+					</div>
+			
+				</div>
+				<!-- 下线展示 -->
+				<div class="Downline">
+					<div class="Downline_mode">
+						<img class="Downline_modeimg" src="./image/no_video.png" alt="">
+						<p class="Downline_modep">房间已被下线</p>
+					</div>
+			
+				</div>
+				<!--浏览器中微信支付确认-->
+				<div class="show_webPayT">
+					<div class="show_webPaycenter">
+						<h3 class="show_w1">请确认微信支付是否完成</h3>
+						<p class="webPay_over">已完成支付</p>
+						<p class="rewebPay">取消</p>
+					</div>
+				</div>
+				<!--绑定手机-->
+				<div class="mobile_bind">
+					<div class="bind_step1">
+						<div class="mobile_bind_top">
+							<p>进行该操作，需要绑定手机号，提升您的账号安全。</p>
+						</div>
+						<input class="mo_bindPhone" type="tel" pattern="[0-9]*" maxlength="11" onkeyup="this.value=this.value.replace(/\D/g,'')"
+						 placeholder="请输入手机号">
+						<div class="mo_sendyam">
+							<input class="mo_bindyanzm" id="mo_bindyanzm" type="tel" pattern="[0-9]*" maxlength="5" onkeyup="this.value=this.value.replace(/\D/g,'')"
+							 placeholder="请输入验证码">
+							<input type="button" id="mo_bindSend" class="mo_bindSend" value="获取验证码">
+						</div>
+						<a class="bind_btn" href="javascript:;">绑定</a>
+					</div>
+					<div class="bind_account">
+						<div class="bind_account_bottom">
+							<div class="weixin_message">
+								<img src="./image/video-bg.jpg" alt="">
+								<p class="m_name">微信昵称</p>
+							</div>
+							<img class="binding_arrow" src="./image/mobile/binding_arrow.png" alt="">
+							<div class="main_message">
+								<img src="./image/video-bg.jpg" alt="">
+								<p class="m_name">用户昵称</p>
+							</div>
+						</div>
+						<div class="bind_account_top">
+							<p><i></i><span class="min_span">你要绑定的手机号，已经注册过梦网云播账号</span></p>
+							<p style="margin-top: 0.2rem;"><i></i><span class="min_span">如果继续绑定，账号【<span class="wx_name">希希哈哈</span>】将会和账号【<span class="mw_name">希希哈哈</span>】合并</span></p>
+							<p style="margin-top: 0.2rem;"><i></i><span class="min_span">合并之后以账号【<span class="mw_name">希希哈哈</span>】的账户信息为准</span></p>
+						</div>
+						<p class="con_bind">继续绑定</p>
+					</div>
+				</div>
+
+				
+
+
+	</div>
+	
+	<!-- <div id="popbox3" style="background:rgba(0,0,0,0.5); position:absolute; left:0; top:0;width:100%;    height: 100%;z-index: 8888;">
+		<div class="popInfo3" id="popInfo3" >
+			<div class="info_txt">该直播已结束</div>
+			<div class="button">
+				<p>我知道了</p>
+			</div>
+		</div>
+	</div> -->
+	<script charset="utf-8" src="js/weixin.js?v=17-2018100803"></script>
+	<script charset="utf-8" src="js/bac_wx_share.js?v=17-2018100803"></script>
+	<script charset="utf-8" src="js/livePage.js?v=17-2018100803"></script>
+	<script charset="utf-8" src="js/eVideo.js?v=17-2018100803"></script>
+	<script charset="utf-8" src="js/danmu.js?v=17-2018100803"></script>
+	<script charset="utf-8" src="js/TouchSlide.1.0.js"></script>
+	<script charset="utf-8" src="js/swiper.min.js"></script>
+	<script charset="utf-8" src="js/socket.io-1.4.5.js?v=17-2018100803"></script>
+	<script charset="utf-8" src="js/uuid.js"></script>
+	<script charset="utf-8" src="js/noticeScroll.js"></script>
+	<script charset="utf-8" src="js/bac_chat_video_index.js?v=17-2018100803"></script>
+	<script charset="utf-8" src="js/autoPlay.js?v=17-2018100803"></script>
+	<script charset="utf-8" src="js/scrollFix.js?v=17-2018100803"></script>
+
+	<script>
+		
+		var weibolink = config.weibolink+'|'+config.curUrl+'bind_phone.html|'+config.curUrl+'vLive.html|liveid|' + liveID;
+		var qqlink = config.qqlink+'|'+config.curUrl+'bind_phone.html|'+config.curUrl+'vLive.html|liveid|' + liveID;
+		$("#weibo_login").attr("href", weibolink);
+		$("#qqlink").attr("href", qqlink);
+		//输入框获取焦点时
+		var interval081117;
+		$("#input_world").focus(function () {
+			$(this).removeClass("chat-input_put");
+			// $(this).attr("placeholder", "");
+			// var str = navigator.userAgent.toLowerCase();
+			// var ver = str.match(/cpu iphone os (.*?) like mac os/);
+			// if (!ver) {
+			// } else {
+			// 	var iosbanben = ver[1].replace(/_/g, ".");
+			// 	var str_before = iosbanben.split(".")[0];
+			// 	if (str_before >= 11) {
+			// 	}
+			// 	else {
+			// 		interval081117 = setInterval(function () {
+			// 			document.body.scrollTop = document.body.innerHeight;
+			// 		}, 500);
+			// 		setTimeout(function () {
+			// 			clearInterval(interval081117);
+			// 		}, 500)
+			// 	}
+			// }
+		});
+		//输入框失去焦点时
+		$("#input_world").blur(function () {
+			if ($("#input_world").val() == "") {
+				$(this).addClass("chat-input_put");
+				$(this).attr("placeholder", "说点什么吧...");
+			}
+			else {
+				$(this).removeClass("chat-input_put");
+			}
+		});
+		//优化滑动区域
+		var scrollable = document.getElementById("wrapper_scroll");
+		new ScrollFix(scrollable);
+		var scrollable2 = document.getElementById("appoint_mode_center");
+		new ScrollFix(scrollable2);
+		function closeIf() {
+			$("#YuFrame1").remove();
+			$("#YuFrame1Bg").remove();
+		}
+		//点击播放
+		var playBtn = document.getElementById("play_btn");
+		playBtn.addEventListener('touchend', function(event) {
+			$("#video_IMG").hide();
+			$("#example_video_1")[0].play();
+		}, false);
+	</script>
+
+</body>
+
+</html>

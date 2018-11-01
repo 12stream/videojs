@@ -1,9 +1,0 @@
-const doubleCountHandle = (num) => {
-    if(Object.prototype.toString.call(num) === "[object Number]") {
-      return num > 9 ? num : '0' + num
-    } else {
-      return ''
-    }
-  }
-
-  module.exports = { doubleCountHandle }

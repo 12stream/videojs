@@ -1,0 +1,461 @@
+/* 清除内外边距 */
+body, h1, h2, h3, h4, h5, h6, hr, p, blockquote, /* structural elements 结构元素 */
+dl, dt, dd, ul, ol, li, /* list elements 列表元素 */
+pre, /* text formatting elements 文本格式元素 */
+fieldset, lengend, button, input, textarea, /* form elements 表单元素 */
+th, td { /* table elements 表格元素 */
+    margin: 0;
+    padding: 0;
+}
+
+/* 设置默认字体 */
+body,
+button, input, select, textarea { /* for ie */
+    /*font: 12px/1 Tahoma, Helvetica, Arial, "宋体", sans-serif;*/
+    font: 12px/1 Tahoma, Helvetica, Arial, "\5b8b\4f53", sans-serif; /* 用 ascii 字符表示，使得在任何编码下都无问题 */
+}
+
+h1 { font-size: 18px; /* 18px / 12px = 1.5 */ }
+h2 { font-size: 16px; }
+h3 { font-size: 14px; }
+h4, h5, h6 { font-size: 100%; }
+
+address, cite, dfn, em, var { font-style: normal; } /* 将斜体扶正 */
+code, kbd, pre, samp, tt { font-family: "Courier New", Courier, monospace; } /* 统一等宽字体 */
+small { font-size: 12px; } /* 小于 12px 的中文很难阅读，让 small 正常化 */
+
+/* 重置列表元素 */
+ul, ol { list-style: none; }
+
+/* 重置文本格式元素 */
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+abbr[title], acronym[title] { /* 注：1.ie6 不支持 abbr; 2.这里用了属性选择符，ie6 下无效果 */
+    border-bottom: 1px dotted;
+    cursor: help;
+}
+
+q:before, q:after { content: ''; }
+
+/* 重置表单元素 */
+legend { color: #000; } /* for ie6 */
+fieldset, img { border: none; } /* img 搭车：让链接里的 img 无边框 */
+/* 注：optgroup 无法扶正 */
+button, input, select, textarea {
+    font-size: 100%; /* 使得表单元素在 ie 下能继承字体大小 */
+}
+
+/* 重置表格元素 */
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* 重置 hr */
+hr {
+    border: none;
+    height: 1px;
+}
+
+/* 让非ie浏览器默认也显示垂直滚动条，防止因滚动条引起的闪烁 */
+html { overflow-y: scroll; }
+
+a{
+    text-decoration:none !important;
+    border:none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    -webkit-tap-highlight-color:transparent;
+    outline:none;
+}
+a:link{
+    text-decoration:none !important;
+}
+a:visited{
+    text-decoration:none !important;
+}
+a:hover{
+    text-decoration:none !important;
+}
+a:active{
+    text-decoration:none !important;
+}
+body{
+}
+.contenier{
+    font-family: "Microsoft Yahei";
+}
+.head_top{
+    height: 5rem;
+    background: url("../image/personal_back.png") no-repeat;
+    background-size: cover;
+    position: relative;
+}
+.head_icon{
+    position: relative;
+    width: 1.94rem;
+    height:1.94rem;
+    margin-left: 0.55rem;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.16);
+}
+.head_img_v{
+    position: absolute;
+    width: 0.4rem;
+    bottom: 0;
+    right:0;
+}
+.head_img{
+    position: absolute;
+    width: 1.666rem;
+    height:1.666rem;
+    left:50%;
+    top:50%;
+    margin-top: -.833rem;
+    margin-left: -.833rem;
+    border-radius: 50%;
+}
+.user_name{
+    font-size: 0.45rem;
+    color: #fff;
+    position: absolute;
+    left: 29%;
+    top: 1.25rem;
+}
+.user_title{
+    font-size: 0.3rem;
+    color: rgba(255,255,255,0.8);
+    position: absolute;
+    left: 29%;
+    top: 2.05rem;
+    width: 60%;
+    font-family: Arial;
+}
+.show_look{
+    margin-top: 1.0rem;
+    text-align: center;
+    margin-bottom: 0.3rem;
+    margin-left: 4.3rem;
+}
+.head_up{
+    /*border-bottom: 1px solid #e1e1e2;*/
+    /*padding-bottom: 0.7rem;*/
+    padding-top: 0.8rem;
+}
+.tishiP{
+    font-size: 0.4rem;
+    text-align: center;
+    margin-top: 0.6rem;
+    color: #999999;
+}
+.show_look p{
+    font-size: 0.32rem;
+    color: #ffffff;
+    text-align: center;
+    line-height: .638889rem;
+    display: inline-block;
+     width: 45%;
+}
+.show_look b{
+    display: inline-block;
+    width: 1px;
+    height:0.6rem;
+    background-color:  rgba(255,255,255,0.8);
+    vertical-align: middle;
+}
+.show_look p span{
+    display: inline-block;
+    color: #fff;
+    font-size: 0.55rem;
+    font-family: Arial;
+    vertical-align: middle;
+    margin-left: 0.21rem;
+}
+.live_content{
+    background-color: #f3f3f3;
+    padding: 0.3rem 0rem 0rem 0rem;
+    min-height: 10rem;
+    padding-bottom: 0.3rem;
+}
+.live_tatal{
+    font-size: 0.32rem;
+    color: #666666;
+}
+.live_tatal span{
+    margin-left: 0.3rem;
+}
+.bottom_floor{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height:1.7rem;
+    text-align: center;
+    background-color: #ffffff;
+
+}
+.bottom_button{
+    width: 89%;
+    height: 1.1rem;
+    line-height: 1.1rem;
+    margin: 0 auto;
+    background-color: #2B94FF;
+    text-align: center;
+    margin-top: 0.3rem;
+    display: block;
+    border-radius: 0.1rem;
+}
+.down_clond{
+    width: 0.8rem;
+    vertical-align: middle;
+}
+.bottom_button span{
+    font-size: 0.4rem;
+    color: #ffffff;
+    margin-left: 0.3rem;
+}
+
+.live_middle{
+    position: relative;
+    /*background-color: #fff;*/
+
+}
+.live_middle a{
+    padding: 0.3rem 0.3rem;
+}
+.live_mode{
+    display: block;
+    margin-bottom: 0.3rem;
+    background-color: #ffffff;
+    position: relative;
+}
+.live_title{
+    font-size: 0.42rem;
+    color: #333333;
+    font-weight: normal;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+    padding-right: 0.55rem;
+}
+.peimit_icon{
+    width: 1rem;
+    vertical-align: middle;
+    position: absolute;
+    right:0;
+    bottom: 0;
+}
+.live_name{
+    /*margin-left: 0.3rem;*/
+
+}
+.live_show_mode{
+    width: 42%;
+    float: left;
+    position: relative;
+    padding-bottom: 0.2rem;
+}
+.live_show_right{
+    float: right;
+    width: 53%;
+
+}
+.live_show{
+    width: 100%;
+    display: block;
+    overflow: hidden;
+}
+.live_show_img{
+    width: 100%;
+    height:auto;
+    display: block;
+    border-radius: 0.1rem;
+}
+.join_people{
+    font-size: 0.35rem;
+    color: #666666;
+    position: absolute;
+    top: 0.66rem;
+    right: 0.4rem;
+}
+.join_d{
+    margin-top: 0.2rem;
+    color: #999;
+}
+.join_num{
+    font-weight: normal;
+    font-size: 0.3rem;
+
+}
+.live_show_down{
+    position: relative;
+    overflow: hidden;
+    clear: both;
+    border-top:1px solid #f2f2f2;
+}
+.livehead_box{
+    position: relative;
+    float: left;
+}
+.live_head_v{
+    position: absolute;
+    right: 0;
+    bottom: 0rem;
+    width: 0.25rem;
+}
+.live_header{
+    width: 0.69rem;
+    height:0.69rem;
+    border-radius: 50%;
+    margin-top: 0.2rem;
+    margin-left: 0;
+}
+.begin_time{
+    font-size: 0.3rem;
+    margin-top: 0.2rem;
+}
+.begin_time_p{
+    margin-top: 0.2rem;
+    color: #999;
+}
+.archor_name{
+    font-size: 0.35rem;
+    color: #999;
+    margin-top: 0.355rem;
+    margin-left: 1rem;
+}
+.biaoshi_color0{
+    width: 1.15rem;
+    height: 0.5555rem;
+    line-height: 0.5555rem;
+    border-radius: 0.09rem;
+    position: absolute;
+    text-align: center;
+    padding-left: 0.1rem;
+    left: 0.2rem;
+    top: 0.2rem;
+    color: #ffffff;
+    font-size: 0.3rem;
+    background-color: rgba(0,0,0,0.3);
+}
+.biaoshi_color0:before{
+    content: '';
+    position: absolute;
+    left: 0.1rem;
+    top: 45%;
+    margin-top: -3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 100%;
+    background-color: #F5A623;
+}
+.biaoshi_color1:before{
+    content: '';
+    position: absolute;
+    left: 0.1rem;
+    top: 50%;
+    margin-top: -3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 100%;
+    background-color: #FF467F;
+}
+.biaoshi_color2:before{
+    content: '';
+    position: absolute;
+    left: 0.1rem;
+    top: 50%;
+    margin-top: -3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 100%;
+    background-color: #2B94FF;
+}
+.biaoshi_color2{
+    width: 1.15rem;
+    height: 0.5555rem;
+    line-height: 0.5555rem;
+    border-radius: 0.09rem;
+    position: absolute;
+    text-align: center;
+    padding-left: 0.1rem;
+    left: 0.2rem;
+    top: 0.2rem;
+    color: #ffffff;
+    font-size: 0.3rem;
+    background-color: rgba(0,0,0,0.3);
+}
+.biaoshi_color1{
+    width: 1.15rem;
+    height: 0.5555rem;
+    line-height: 0.5555rem;
+    border-radius: 0.09rem;
+    position: absolute;
+    text-align: center;
+    padding-left: 0.1rem;
+    left: 0.2rem;
+    top: 0.2rem;
+    color: #ffffff;
+    font-size: 0.3rem;
+    background-color: rgba(0,0,0,0.3);
+}
+.biaoshi_color3{
+    width: 100%;
+    height: 100%;
+    line-height: 2.2rem;
+    position: absolute;
+    text-align: center;
+    left: 0;
+    top: 0;
+    color: #ffffff;
+    font-size: 0.388rem;
+}
+.live_content .no_songli{
+    width: 34%;
+    margin-top: 3rem;
+    margin-left: 33%;
+}
+.peimit_wat{
+    vertical-align: middle;
+    font-size: 0.3rem;
+    color: #9B9B9B;
+    margin-top: 0.3rem;
+}
+
+.pemit_way{
+
+}
+.peimit_wat span{
+
+}
+.pemit_way_icon {
+    width: 0.5rem;
+    float: right;
+    display: inline-block;
+    /* top: 0.3rem; */
+    margin-right: 0.2rem;
+    padding-top: 0.013rem;
+    vertical-align: middle;
+}
+.no_more {
+    color: #999999;
+    font-size: 0.36rem;
+    /* padding-bottom: 1rem; */
+    padding-bottom: 2.2rem;
+    text-align: center;
+    background-color: #f3f3f3;
+}
+.icon_r{
+    width:1rem;
+    height:0.5rem;
+    line-height: 0.5rem;
+    text-align: center;
+    background: url(../image/icon_r.png);
+    background-size:100% 100%;
+    position: absolute;
+    right:0;
+    top:0;
+    display:none;
+    font-size:0.28rem;
+    color:#fff;
+}

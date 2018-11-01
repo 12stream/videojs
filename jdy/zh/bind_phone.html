@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1">
+    <title>绑定手机号</title>
+    <style>
+        *{margin: 0;padding: 0;}
+        .page{
+            position: relative;
+            font-family: "Microsoft Yahei";
+        }
+        .bing_h1{
+            font-size: 15px;
+            color: #999999;
+            background-color: #f2f2f2;
+            height:34px;
+            line-height: 34px;
+            padding-left: 14px;
+            font-weight: normal;
+            font-size: 0.333rem;
+        }
+        .input_s{
+            display: block;
+            margin: 0 auto;
+            width: 100%;
+            height: 50px;
+            line-height: 50px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            border-bottom: 1px solid #f2f2f2;
+        }
+        .get_ma{
+            text-align: center;
+            width: 100px;
+            height: 34px;
+            line-height: 34px;
+            background-color: #f2f2f2;
+            color: #999999;
+            position: absolute;
+            right: 0;
+            top: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            border: none;
+            outline: none;
+        }
+        .nig_mode{
+            position: relative;
+            margin: 0 auto;
+            overflow: hidden;
+            width: 80%;
+            margin-top: 0.5rem;
+        }
+        .success_end{
+            display: block;
+            width: 80%;
+            height:40px;
+            line-height: 40px;
+            margin: 0 auto;
+            text-align: center;
+            font-size: 17px;
+            color: #ffffff;
+            margin-top: 20px;
+        }
+        
+        .login_dr{
+            font-size: 12px;
+            text-align: center;
+            margin-top: 20px;
+            color: #999999;
+        }
+        .login_dr a{
+            font-size: 14px;
+            color: #4a90e2;
+            text-decoration: none;
+        }
+        .login_dr span{
+            color: #d8d8d8;
+        }
+        .mo_bindSendac,.success_end{
+            background: linear-gradient(134.7deg,rgba(58, 69, 255, 1),rgba(108, 149, 255, 1));
+            border-radius: 4px;
+            color: #ffffff !important;
+        }
+
+    </style>
+    <script src="js/jquery.min.js?ver=20180105"></script>
+    <script src="js/config.js?ver=20180105"></script>
+    <script src="js/commonUtil.js?ver=20180106"></script>
+</head>
+<body>
+    <div class="page">
+        <h1 class="bing_h1">进行该操作，需要绑定手机号，提升您的账号安全。</h1>
+        <div class="nig_mode">
+            <input id="bind_phone" type="tel"  pattern="[0-9]*"  maxlength="11" class="input_s" placeholder="请输入手机号" >
+        </div>
+        <div class="nig_mode">
+            <input id="yanzm"  pattern="[0-9]*"  maxlength="5" class="input_s" placeholder="请输入验证码" type="text">
+            <input class="get_ma" id="code_btn" type="button" value="获取验证码">
+        </div>
+        <a class="success_end" id="success_end">绑定</a>
+        <!-- <p class="login_dr">已经有云播账号？&nbsp;<span>|</span>&nbsp;<a id="login_in" href="">去登录</a></p> -->
+    </div>
+<script type="text/javascript">
+    var nums = 60;
+    var clock;
+    var liveid;
+    var storage = window.localStorage;
+    if(window.localStorage && (window.localStorage.setItem('abcde', 123) , window.localStorage.getItem('abcde') == 123)){
+        liveid = storage.liveID;
+    }
+    console.log(liveid);
+    function getname(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return decodeURI(r[2]);
+        return null;
+    }
+    var third_id = commonUtils.getUrlParam("third_id");
+    var user_name = getname("user_name");
+    if (user_name != null || user_name != undefined) {
+        user_name = user_name.replace("+"," ");
+    }
+    var user_icon_url = commonUtils.getUrlParam("user_icon_url");
+    var type = commonUtils.getUrlParam("type");
+    // 绑定完成返回页面
+    var pageName = commonUtils.getUrlParam("liveid")?'vLive.html?liveid=':'video.html?video=';
+    var yanzm;
+    var loginin_href = pageName + liveid+"&ver="+10000*Math.random(1,10000);
+    $("#login_in").attr("href",loginin_href);
+    $("#code_btn").click(function(){
+        var bind_phone = $("#bind_phone").val();
+        if(commonUtils.checkStr(bind_phone) && bind_phone.length == 11 && commonUtils.checkPhoneNum(bind_phone)){
+            var curTime = (new Date()).valueOf();
+            $.ajax({
+                type:'post',
+                url:config.lhServerUrl+'/api/mwlive/user/user_login_third_bind.do',
+                data:{
+                    mobile:bind_phone,
+                    oper_time:curTime
+                },
+                cache:false,
+                dataType:'json',
+                success:function(data){
+                    if(data && data.code == 200){
+                        console.log(data.data);
+                        commonUtils.showPop2("短信验证码已发送，请查收");
+                        $("#code_btn").attr("disabled", true);
+                        doLoop();
+                    }
+                    else if(data && data.code == 410){
+                        commonUtils.showPop2("该用户已注册");
+                    }
+                    else{
+                        commonUtils.showPop2("获取失败，请稍候再试");
+                    }
+
+                },error:function(){
+                    commonUtils.showPop2("获取失败，请稍候再试");
+                }
+            });
+        }else{
+            commonUtils.showPop2("请输入正确的手机号码");
+            $("#bind_phone").focus();
+        }
+    });
+
+    $("#bind_phone").on('keyup paste', function () {
+		var mo_bindPhone = $(this).val();
+		if (mo_bindPhone.length == 11) {
+			bind_btflag = 1;
+			if (bind_btflag == 1) {
+				$("#code_btn").addClass("mo_bindSendac");
+			}
+		}else {
+			bind_btflag = 0;
+			$("#code_btn").removeClass("mo_bindSendac");
+		}
+	});
+    
+    var nums = 60;
+    var clock;
+    function doLoop(){
+        clearInterval(clock); //清除js定时器
+        nums--;
+        if(nums > 0){
+            $("#code_btn").val(nums);
+        }else{
+            clearInterval(clock); //清除js定时器
+            $("#code_btn").attr("disabled", false);
+            $("#code_btn").val('获取验证码');
+            nums = 60; //重置时间
+            return false;
+        }
+        clock = setInterval(doLoop, 1000); //一秒执行一次
+    }
+    var user_id;
+    var user_name;
+    var user_icon_url;
+    var liveId;
+    $("#success_end").on("click",function(){
+        var yanzm = $("#yanzm").val();
+        var bind_phone = $("#bind_phone").val();
+        console.log("user_name:"+user_name);
+        $.ajax({
+            type:'post',
+            url:config.lhServerUrl+'/api/mwlive/user/third_user_reg.do',
+            // url:'http://10.10.212.73:8081/montnets-project-mwlive/api/mwlive/user/third_user_reg.do',
+            data:{
+                mobile:bind_phone,
+                password:"71b596cb42ee254f7416043d184fc970",
+                sm_code:yanzm,
+                type:type,
+                user_name:user_name,
+                user_icon_url:user_icon_url,
+                third_id:third_id,
+                liveId:liveId        
+            },
+            cache:false,
+            dataType:'json',
+            success:function(data){
+                if(data && data.code == 200){
+                    console.log(data.data);
+                    user_id = data.data.id;
+                    user_name = data.data.user_title;
+                    user_icon_url = data.data.third_icon;
+                    liveId = data.data.liveId;
+                    location.href = config.curUrl + pageName + liveid+"&user_id="+user_id
+                    // location.href = "vLive.html?user_id="+user_id+"&user_name="+user_name+"&user_icon_url="+user_icon_url+"&liveid="+liveid                  
+                }
+                else if(data && data.code == 410&&data.msg=="sm_code error"){
+                    commonUtils.showPop2("验证码错误，请重新输入");
+                }
+                else{
+                    commonUtils.showPop2("绑定失败，请稍候再试");
+                }
+            },error:function(){
+                commonUtils.showPop2("绑定失败，请稍候再试");
+            }
+        });
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="x5-fullscreen" content="true">
+    <meta name="full-screen" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no, email=no">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>个人主页</title>
+    <link rel="stylesheet" href="css/personal.css?v=17-2018061301">
+</head>
+<body>
+<div class="contenier">
+    <div class="head_top">
+        <div class="head_up">
+            <div class="head_icon">
+                <img class="head_img" src="./image/mobile/peimit_icon0.png" alt="">
+                <img class="head_img_v" src="./image/mobile/peimit_icon0.png" alt="">
+            </div>
+            <p class="user_name"></p>
+            <p class="user_title">云播ID:<span class="user_ID"></span></p>
+        </div>
+
+        <div class="show_look">
+            <p>关注<span id="fllow_num"></span></p>
+            <b></b>
+            <p>粉丝<span id="fans_num"></span></p>
+        </div>
+    </div>
+    <div class="live_content">
+        <!--<p class="live_tatal">总直播数<span>21</span></p>-->
+        <div class="live_middle">
+<!--            <a target="_blank" href="http://pt.facebac.com/l/1178309224503306919" class="live_mode">
+                <div class="live_show">
+                    <div class="live_show_mode">
+                        <img class="live_show_img" src="http://mwdatatest.facebac.com/1/1/2/f86baefc910afdf16b46/f48b7c66-e9a7-4ed7-9877-02332ec14682.jpeg">
+
+                        <p class="biaoshi_color0">预告</p>
+                    </div>
+                    <div class="live_show_right">
+                        <h1 class="live_title"><span class="live_name">028</span></h1>
+                        <p class="peimit_wat">权限：<span class="pemit_way">加密</span></p>
+                        <p class="begin_time_p">时间：<span class="begin_time">2018-03-01 09:11</span></p>
+                        <p class="join_d">浏览：<span class="join_num">0</span>次</p>
+                    </div>
+                    <div class="live_show_down">
+                        <div class="livehead_box">
+                            <img class="live_header" src="http://mwdatatest.facebac.com/1/1/1/f86baefc910afdf16b46/6520c104-d9b4-469c-b65a-e7d9771ab4ae.jpeg" alt="">
+                            <img class="live_head_v" src="" alt="">
+                        </div>
+                        <p class="archor_name">dsd</p>
+                    </div>
+                </div>
+            </a>-->
+        </div>
+    </div>
+    <p class="no_more">- 没有更多了 -</p>
+    <div class="bottom_floor">
+        <div class="bottom_button"><img class="down_clond" src="./image/mobile/down_clond.png" alt=""><span>下载云播APP, 发起您的精彩直播</span></div>
+    </div>
+</div>
+<script src="js/jquery.min.js"></script>
+<script src="js/commonUtil.js?v=17-2018061301"></script>
+<script src="js/config.js?v=17-2018061301"></script>
+<script>
+    $(function(){
+        //改变html的font-size
+        initpage();
+        $(window).resize(function()
+        {
+            initpage();
+        });
+
+        function initpage()
+        {
+            var view_width = document.getElementsByTagName('html')[0].getBoundingClientRect().width;
+            var _html = document.getElementsByTagName('html')[0];
+            _html.style.fontSize =view_width/10+'px';
+        }
+
+        //获取地址栏主播id
+        function getUrlParms(name){
+            var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if(r!=null)
+                return unescape(r[2]);
+            return null;
+        }
+        var id = getUrlParms("userid");
+//        console.log(id);
+        function getInfo(){
+            $.ajax({
+                type: "POST",
+                data: {
+                    fromUserID:"1177720833020645376",
+                    userID:id,
+                    v:'2.0.0'
+                },
+                url: config.lhServerUrl+"/service/queryUserPage.action",
+                dataType: "json",
+                success: function(data) {
+                    if(data.resultCode==1){
+                        var datas = data.params;
+                        if(commonUtils.checkStr(datas)){
+                            var userInfo = datas.userInfo;
+                            var userName = userInfo.userName;
+                            var userHead = userInfo.imgUrl;
+                            var fllowNum = userInfo.followNum;
+                            var fansNum = userInfo.fansNum;
+                            var userNumber = userInfo.userNumber;
+                            var qualify = userInfo.qualify;//认证状态
+                            var liveStartTime;//直播开始时间
+                            var isDefaultFollow = userInfo.isDefaultFollow;//是否为官方用户
+                            $(".user_ID").text(userNumber);
+                            $(".head_img").attr("src",userHead);
+                            $(".user_name").text(userName);
+                            $("#fllow_num").text(fllowNum);
+                            $("#fans_num").text(fansNum);
+                            $("#fans_num").text(fansNum);
+                            if(qualify==3){
+                                $(".head_img_v").attr("src",'./image/mobile/icCertificationVipLarge.png');
+                            }
+                            if(isDefaultFollow==1){
+                                $(".head_img_v").attr("src",'./image/mobile/icCertificationStarLarge.png');
+                                $(".show_look").hide();
+                            }
+                            if(qualify!=3&&isDefaultFollow!=1){
+                                $(".head_img_v").attr("src",'./image/mobile/peimit_icon0.png');
+                            }
+                            var liveInfo = datas.liveParams.list;
+                                if(commonUtils.checkStr(liveInfo)){
+                                    var livename;//直播房间名
+                                    var liveimg;//直播图片
+                                    var livePermit;//加密模式
+                                    var totalViewers;//总观看次数
+                                    var releaseUrl;//分享播放地址
+                                    var liveStatus;//直播状态
+                                    var color=0;
+                                    var statusfont = '';
+                                    
+                                    var appointCount;//直播开始时间
+                                    var liveWay = '';//直播的方式
+                                    var pemit_way_icon = '';
+                                    var isShowIcon = 'none';
+    //                            console.log(liveInfo.length)
+                                    for(var i=0;i<liveInfo.length;i++){
+                                        livename = liveInfo[i].liveName;
+                                        liveimg = liveInfo[i].picUrl;
+                                        livePermit = liveInfo[i].livePermit;
+                                        if( !liveInfo[i].totalViewers||liveInfo[i].totalViewers==null||liveInfo[i].totalViewers==undefined){
+                                            totalViewers = '0'
+                                        }else{
+                                            totalViewers = liveInfo[i].totalViewers;
+                                        }                                        
+                                        if(totalViewers>=10000){
+                                            totalViewers = parseFloat(totalViewers/10000).toFixed(1)+'W';
+                                        }
+                                        releaseUrl = liveInfo[i].releaseUrl;
+                                        liveStatus = liveInfo[i].liveStatus;
+                                        liveStartTime = liveInfo[i].liveStartTime;
+                                        var nowTime =  (new Date().getTime()/1000);
+                                        var timecreate = (new Date().getTime()/1000);
+                                        var chaTime = liveStartTime/1000 - nowTime;
+                                        if(chaTime>=0){
+                                            chaTime = liveStartTime/1000 - nowTime;
+                                        }
+                                        else if(chaTime<0){
+                                            chaTime = nowTime - liveStartTime/1000 ;
+                                        }
+                                        //a.“直播”时间呈现形式：当天的显示具体时间，若跨天的需要多显示月和日；
+                                        // if(liveStatus==1){
+                                        //     var timecreate = new Date(liveStartTime).format("MM-dd");
+                                        //     var nowMd = new Date().format("MM-dd");
+                                        //     if(timecreate==nowMd){
+                                        //         timecreate = new Date(liveStartTime).format("hh:mm");
+                                        //         liveStartTime = timecreate;
+                                        //     }
+                                        //     else {
+                                        //         timecreate = new Date(liveStartTime).format("MM-dd hh:mm");
+                                        //         liveStartTime = timecreate;
+                                        //     }
+                                        // }
+                                        //b.“预告”时间呈现形式：当天的显示具体时间，若未来跨天的需要多显示月和日
+                                        // if(liveStatus==0){
+                                        //     var timecreate = new Date(liveStartTime).format("MM-dd");
+                                        //     var nowMd = new Date().format("MM-dd");
+                                        //     if(timecreate==nowMd){
+                                        //         timecreate = new Date(liveStartTime).format("hh:mm");
+                                        //         liveStartTime = timecreate;
+                                        //     }
+                                        //     else {
+                                        //         timecreate = new Date(liveStartTime).format("MM-dd hh:mm");
+                                        //         liveStartTime = timecreate;
+                                        //     }
+                                        // }
+                                        //c.“回放”时间呈现形式：当天的显示具体时间，若过去跨天并在一个月之内的显示1天前.....30天前，超过一个月的只需要显示月和日
+                                        // if(liveStatus==2 || liveStatus==5){
+                                        //     var d = Math.floor(chaTime/60/60/24);
+                                        //     var timecreate = new Date(liveStartTime).format("MM-dd");
+                                        //     var nowMd = new Date().format("MM-dd");
+                                        //     if(timecreate==nowMd){
+                                        //         timecreate = new Date(liveStartTime).format("hh:mm");
+                                        //         liveStartTime = timecreate;
+                                        //     }
+                                        //     else if(d>1&&d<=30){
+                                        //         timecreate = d+"天前";
+                                        //         liveStartTime = timecreate;
+                                        //     }
+                                        //     else {
+                                        //         timecreate = new Date(liveStartTime).format("MM-dd");
+                                        //         liveStartTime = timecreate;
+                                        //     }
+                                        // }
+                                        var unixTimestamp = new Date(liveInfo[i].liveStartTime);
+                                        var timecreate = new Date(unixTimestamp).format("yyyy-MM-dd hh:mm");
+                                        liveStartTime = timecreate;
+                                        
+                                        if(livePermit==0){
+                                            liveWay='免费'
+                                        }
+                                        else if(livePermit==1){
+                                            liveWay='加密'
+                                        }
+                                        else if(livePermit==2){
+                                            liveWay='付费'
+                                        }
+                                        else if(livePermit==3){
+                                            liveWay='门票'
+                                        }
+                                        else if(livePermit==4){
+                                            liveWay='专属直播间'
+                                        }
+                                        if(liveStatus==0){
+                                            color="biaoshi_color0";
+                                            statusfont ="预告";
+                                            totalViewers = liveInfo[i].appointCount;
+                                            pemit_way_icon = './image/mobile/iconTno.png';
+                                            isShowIcon = "none";
+                                        }
+                                        else if(liveStatus==1){
+                                            color="biaoshi_color1";
+                                            statusfont ="直播";
+                                            pemit_way_icon = './image/mobile/iconTno.png';
+                                            isShowIcon = "none";
+                                        }
+                                        else if(liveStatus==2){
+                                            color="biaoshi_color2";
+                                            statusfont ="回放";
+                                            pemit_way_icon = './image/mobile/iconWatch.png';
+                                            isShowIcon = "none";
+                                        }
+                                        else if(liveStatus==4){
+                                            color="biaoshi_color0";
+                                            statusfont ="预告";
+                                            totalViewers = liveInfo[i].appointCount;
+                                            pemit_way_icon = './image/mobile/iconTno.png'
+                                            isShowIcon = "block";
+                                           
+                                        }
+                                        else if(liveStatus==5){
+                                            color="biaoshi_color3";
+                                            statusfont ="直播已结束";
+                                            isShowIcon = "none";
+                                        }
+//                                        if(commonUtils.checkStr(liveStartTime)){
+//                                            var timecreate = new Date(liveStartTime).format("yyyy-MM-dd hh:mm");
+//                                            liveStartTime = timecreate;
+//                                        }
+//                                        else {
+//                                            liveStartTime="";
+//                                        }
+                                        // var addlive = '<a href='+releaseUrl+' class="live_mode"><h1 class="live_title"><span class="live_name">'+livename+'</span></h1><div class="live_show"><div class="live_show_mode"><img class="live_show_img" src='+liveimg+' ><img class="peimit_icon" src='+livePermit+'></div><p class="join_people"><span class="join_num">'+totalViewers+'</span>参与</p></div></a>'
+                                       // var addlive ='<a target="_blank" href='+releaseUrl+' class="live_mode"><div class="live_show"><div class="live_show_mode"><img class="live_show_img" src='+liveimg+' ><img class="peimit_icon" src='+livePermit+'><p  class='+color+'>'+statusfont+'</p></div><div class="live_show_down"><img class="live_header" src='+userHead+' alt=""><h1 class="live_title"><span class="live_name">'+livename+'</span></h1><p class="begin_time">'+liveStartTime+'</p><p class="join_people"><span class="join_num">'+totalViewers+'</span>参与</p></div></div></a>';
+                                       // var addlive = '<a target="_blank" href='+releaseUrl+' class="live_mode"><div class="live_show"><div class="live_show_mode"><img class="live_show_img" src='+liveimg+'><div class="peimit_wat"><span class="pemit_way">'+liveWay+'</span><span class="join_num">'+totalViewers+'</span><img class="pemit_way_icon" src='+pemit_way_icon+' alt=""></div><p class='+color+'>'+statusfont+'</p></div><div class="live_show_down"><div class="livehead_box"><img class="live_header" src='+userHead+' alt=""><img class="live_head_v" src="" alt=""></div><h1 class="live_title"><span class="live_name">'+livename+'</span></h1><p class="archor_name">'+userName+'</p><p class="begin_time">'+liveStartTime+'</p></div></div></a>';
+                                        var addlive = '<a target="_blank" href='+releaseUrl+' class="live_mode"><div class="icon_r" style="display:'+isShowIcon+'">已过期</div><div class="live_show"><div class="live_show_mode"><img class="live_show_img" data-src='+liveimg+' src="./image/mobile/peimit_icon0.png"><p class='+color+'>'+statusfont+'</p></div><div class="live_show_right"><h1 class="live_title"><span class="live_name">'+livename+'</span></h1><p class="peimit_wat">权限：<span class="pemit_way">'+liveWay+'</span></p><p class="begin_time_p">时间：<span class="begin_time">'+liveStartTime+'</span></p><p class="join_d">浏览：<span class="join_num">'+totalViewers+'</span>次</p></div><div class="live_show_down"><div class="livehead_box"><img class="live_header" src='+userHead+' alt=""><img class="live_head_v" src="" alt=""></div><p class="archor_name">'+userName+'</p></div></div></a>';
+                                        if(liveStatus==0||liveStatus == 4){
+                                            var addlive = '<a target="_blank" href='+releaseUrl+' class="live_mode"><div class="icon_r" style="display:'+isShowIcon+'">已过期</div><div class="live_show"><div class="live_show_mode"><img class="live_show_img" data-src='+liveimg+' src="./image/mobile/peimit_icon0.png"><p class='+color+'>'+statusfont+'</p></div><div class="live_show_right"><h1 class="live_title"><span class="live_name">'+livename+'</span></h1><p class="peimit_wat">权限：<span class="pemit_way">'+liveWay+'</span></p><p class="begin_time_p">时间：<span class="begin_time">'+liveStartTime+'</span></p><p class="join_d">预约：<span class="join_num">'+totalViewers+'</span>人</p></div><div class="live_show_down"><div class="livehead_box"><img class="live_header" src='+userHead+' alt=""><img class="live_head_v" src="" alt=""></div><p class="archor_name">'+userName+'</p></div></div></a>';
+                                        }
+                                        $('.live_middle').append(addlive);
+                                        if(qualify==3){
+                                            $(".live_head_v").attr("src",'./image/mobile/icCertificationVipLarge.png');
+                                        }
+                                        if(isDefaultFollow==1){
+                                            $(".live_head_v").attr("src",'./image/mobile/icCertificationStarLarge.png');
+                                        }
+                                        if(qualify!=3&&isDefaultFollow!=1){
+                                            $(".live_head_v").attr("src",'./image/mobile/peimit_icon0.png');
+                                        }
+
+                                }
+                                checkShow();
+
+                            }
+                            else {
+                                $('.live_content').html('');
+                                var tishiImg = '<img class="no_songli" src="./image/mobile/imgDefault.png">';
+                                $(".live_content").append(tishiImg);
+                                var tishiP ='<p class="tishiP">此用户还未发起过直播</p>';
+                                $(".live_content").append(tishiP);
+                            }
+                            //判断与当前相差多少天
+                            function chaday(){
+
+                            }
+                        }
+
+                    }
+                },error:function(data){
+                    commonUtils.showPop2("系统错误，稍后再试");
+                }
+            })
+        }
+        function getArchor(){
+            $.ajax({
+                type: "POST",
+                data: {
+                    userID:id,
+                },
+                url: config.lhServerUrl+"/service/queryUserCenter.action",
+                dataType: "json",
+                success: function(data) {
+                    if(data.resultCode==1){
+                        var datas = data.params;
+                    }
+                },error:function(data){
+                    commonUtils.showPop2("系统错误，稍后再试");
+                }
+            })
+        }
+        getInfo();
+        getArchor();
+        $(".bottom_button").on("click",function(){
+            down_app();
+        });
+        function down_app(){
+            var downUrl = "";
+            if(navigator.userAgent.match(/(iPhone|iPod|iPad);?/i)){
+                downUrl = "http://a.app.qq.com/o/simple.jsp?pkgname=com.montnets.live";
+                location.href=downUrl;
+            }else  if(navigator.userAgent.match(/android/i)){
+                downUrl = "http://a.app.qq.com/o/simple.jsp?pkgname=com.montnets.live";
+                location.href=downUrl;
+            }
+        }
+        function isShow($el){
+            var winH = $(window).height(),//获取窗口高度
+                    scrollH = $(window).scrollTop(),//获取窗口滚动高度
+                    top = $el.offset().top;//获取元素距离窗口顶部偏移高度
+            if(top < scrollH + winH){
+                return true;//在可视范围
+            }else{
+                return false;//不在可视范围
+            }
+        }
+        $(window).on('load',function(){
+            checkShow();
+        });
+        $(window).on('scroll', function(){//监听滚动事件
+            checkShow();
+        });
+        checkShow();
+        function checkShow(){//检查元素是否在可视范围内
+            $('.live_show_img').each(function(){//遍历每一个元素
+                var $cur = $(this);
+                if($(this).attr('data')==true){return;}//判断是否已加载
+                if (isShow($cur)) {
+                    setTimeout(function(){
+                        console.log('show');
+                        showImg($cur);
+                    },100)//设置时间是为了更好的看出效果
+                }
+            });
+        }
+        function showImg($el){
+            console.log($el)
+            $el.attr('src', $el.attr('data-src'));
+            $el.attr('data',true);
+        }
+    });
+</script>
+</body>
+</html>

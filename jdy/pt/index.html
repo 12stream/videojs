@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    
+    
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="ie-stand">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>梦网云播-后台系统</title>
+    <!-- <link rel="shortcut icon" type="image/x-icon" href="http://yeepo.mvaas.cn/images/favicon.ico"> -->
+    <link rel="shortcut icon" type="image/x-icon" href="http://yeepo.mvaas.cn/images/favicon.ico">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- <script src="https://unpkg.com/element-ui@2.2.2/lib/index.js"></script> -->
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_400456_pbukj214hoscerk9.css">
+    <!-- <link rel="stylesheet" href="./static/css/styles.css"> -->
+    <script src="./static/js/socket.io.js"></script>
+    <!-- 视频上传 -->
+
+    <script src="./static/js/jquery-1.9.1.js"></script>
+
+
+    <script src="./static/js/md5.js"></script>
+    <script src="./static/js/plupload/moxie.min.js"></script>
+    <script src="./static/js/plupload/plupload.min.js"></script>
+
+
+
+    <!-- 视频结束 -->
+
+    <!--视频上传2 start-->
+    <script src="http://opentest.facebac.com/resources/js/md5.js"></script>
+    <!--<script src="http://opentest.facebac.com/resources/js/comm.js"></script>-->
+    <script src="http://opentest.facebac.com/resources/js/upload.js"></script>
+    <script src="http://opentest.facebac.com/resources/js/plupload/moxie.min.js"></script>
+    <script src="http://opentest.facebac.com/resources/js/plupload/plupload.min.js"></script>
+    <!--视频上传2 end-->
+
+    <!-- 视频播放 -->
+    <link type="text/css" rel="stylesheet" href="./static/js/videojs/video-js.css" />
+    <script type="text/javascript" src="./static/js/videojs/video.min.js"></script>
+    <script type="text/javascript" src="./static/js/videojs/videojs-contrib-hls.min.js"></script>
+
+  <!-- 视频播放end -->
+
+    <!-- <script src="./src/api/socket.io.js"></script> -->
+    <!-- <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script> -->
+    <!-- <script src="http://montnets.facebac.com/montnet20170707/H5/videoplayer/bac_liveKing/js/socket.io-1.4.5.js"></script> -->
+    <!-- <script src="http://montnets.facebac.com/montnet20170707/H5/videoplayer/bk11/static/bacplayer.js"></script> -->
+    <!-- <script src="http://montnetstest.facebac.com/portal/static/mwplayer.js"></script> -->
+    <script type="text/javascript" src="http://montnetstest.facebac.com/PC/webLive/swf/mwplayer.js?version=20181010 " charset="utf-8"></script>
+    <script src="./static/js/qrcanvas.slim.js"></script>
+    <!-- <script src="https://unpkg.com/qrcanvas/dist/qrcanvas.slim.js"></script> -->
+    <style>
+        .el-tabs__header {
+            margin-bottom: 0
+        }
+
+        .el-tabs--border-card>.el-tabs__content {
+            padding-bottom: 0;
+        }
+
+        .el-tabs--border-card>.el-tabs__content {
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!--[if lt IE 10]>
+    <script type="text/javascript">
+        var str = "你的浏览器版本太low了,已经和时代脱轨了 :(";
+        var str2 = "请使用其他浏览器，或者"+"<a href='http://dldir1.qq.com/invc/tt/QQBrowser_Setup_9.4.8113.400.exe' target='_blank' style='color:blue;'>点击此处，升级您的浏览器</a>。";
+        document.writeln("<pre style='text-align:center;color:#fff;background-color:#0cc; height:100%;border:0;position:fixed;top:0;left:0;width:100%;z-index:1234'>" +
+                "<h2 style='padding-top:200px;margin:0'><strong>" + str + "<br/></strong></h2><h2>" +
+                str2 + "</h2><h2 style='margin:0'><strong><br/></strong></h2></pre>");
+        document.execCommand("Stop");
+    </script>
+    <![endif]-->
+    <div id="app"></div>
+
+    <!-- built files will be auto injected -->
+    <script>
+        // 更换页面favicon
+        // (function () {
+        //     var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+        //     link.type = 'image/x-icon';
+        //     link.rel = 'shortcut icon';
+        //     link.href = 'http://www.stackoverflow.com/favicon.ico';//需要更改
+        //     document.getElementsByTagName('head')[0].appendChild(link);
+        // })();
+    </script>
+</body>
+
+</html>
